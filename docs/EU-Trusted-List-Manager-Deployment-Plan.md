@@ -48,8 +48,9 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 
 - **What:** Web application for browsing, editing, and monitoring Trusted Lists. Provided by the EC to Trusted List Operators.  
 - **Status:** In October 2025 it was announced that the Trusted List Manager is being **decommissioned** for EU use; it is no longer hosted or maintained. The replacement is the **eIDAS Dashboard** (https://eidas.ec.europa.eu/efda/home). **For non-EU countries it remains in use**; recently **v6** was released.  
-- **Service manual (PDF):**  
+- **Service manual (PDF):** EC link below; **local copy:** `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf`  
   https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/42358785/Trusted+List+Manager?preview=/42358785/52598139/TL-Manager(ServiceOfferingDescription)%20(v0.03).pdf  
+  *(This SOD describes purpose, users, roles, access process; it does not specify OS or runtime stack — see §5 for stack from deployment package/other EC docs.)*  
 - **Source and deployment package (non-EU v6.0):**  
   https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/920062707/TL+manager+non-EU+v6.0  
 - **Nexus (requires login; source/zip listed, download may be restricted):**  

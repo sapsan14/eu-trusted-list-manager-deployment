@@ -8,7 +8,7 @@
 
 **How we determine the choice:**
 
-1. **Source of truth** — The **EC Service Manual (PDF)** linked in §2.1. That document should state which OS the application was tested/supported on (likely Debian 12). That is the “initial requirements” from the vendor. *From our plan (§5), the cited official EC stack is: Debian 12, OpenJDK 1.8, Tomcat 9.0.102, MySQL 8.0.41 — the full manual (PDF) must be checked on EC site for any other requirements.*
+1. **Source of truth** — The **EC Service Manual (PDF)** is in repo as `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf`. **Checked:** this document is a Service Offering Description (SOD); it covers purpose, users (TLSO/LOTLSO), scope, roles, access (EC-TL-Service@ec.europa.eu, EU Login UID), and usage. **It does not specify OS or runtime stack.** The stack (Debian 12, OpenJDK 1.8, Tomcat 9.0.102, MySQL 8.0.41) in plan §5 likely comes from the deployment package or another EC technical doc.
 2. **What actually matters for the app** — Not the distro per se but the **stack**: Java 8, Tomcat 9, MySQL 8. Those are standard and available on RHEL 9.
 3. **Risk in the plan (§7):** “TL Manager not compatible with RHEL/MySQL 8 / Tomcat 9.0.x” — mitigation is already there: if issues appear, test on **Debian 12 in a container** (Podman) first to see if it’s OS-specific.
 
