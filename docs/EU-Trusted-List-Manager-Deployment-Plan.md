@@ -10,7 +10,7 @@
 
 ---
 
-## Table of Contents
+# Table of Contents
 
 - [1. Source of truth — Scope and task (Bart)](#1-source-of-truth--scope-and-task-bart)
 - [2. Tools in scope](#2-tools-in-scope)
@@ -28,7 +28,7 @@
 
 ---
 
-## 1. Source of truth — Scope and task (Bart)
+# 1. Source of truth — Scope and task (Bart)
 
 **SCOPE:**  
 Experimentation with the European Commission’s open-source tool for editing, signing, and validating trusted lists. The Commission has published two tools: **Trusted List Manager** and **Trusted List Signing Tool**. The **Manager** is the most important and is the **priority**.  
@@ -42,9 +42,9 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 
 ---
 
-## 2. Tools in scope
+# 2. Tools in scope
 
-### 2.1 Trusted List Manager (non-EU, priority)
+## 2.1 Trusted List Manager (non-EU, priority)
 
 - **What:** Web application for browsing, editing, and monitoring Trusted Lists. Provided by the EC to Trusted List Operators.  
 - **Status:** In October 2025 it was announced that the Trusted List Manager is being **decommissioned** for EU use; it is no longer hosted or maintained. The replacement is the **eIDAS Dashboard** (https://eidas.ec.europa.eu/efda/home). **For non-EU countries it remains in use**; recently **v6** was released.  
@@ -61,7 +61,7 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 - **Trusted List Signing Tool** (local) — sign TLs locally, then upload/download (un)signed XML via the Manager:  
   https://ec.europa.eu/digital-building-blocks/artifact/#browse/browse:esignaturetlm:eu%2Feuropa%2Fec%2Fcef%2Fesignature%2FTLSigning%2F2.1  
 
-### 2.2 Trusted List Signing Tool (secondary)
+## 2.2 Trusted List Signing Tool (secondary)
 
 - **What:** Small local digital signing software; creates **XAdES** signatures compliant with **ETSI TS 119 612 v2.1.1 to v2.4.1**; detects trusted list version and signs accordingly.  
 - **Page:** https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/924976410/Trusted+List+Signing+Tool  
@@ -72,7 +72,7 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 
 ---
 
-## 3. Prerequisites and blockers
+# 3. Prerequisites and blockers
 
 | Item | Status | Action |
 |------|--------|--------|
@@ -83,7 +83,7 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 
 ---
 
-## 4. Resource ordering and procurement
+# 4. Resource ordering and procurement
 
 Order these **in parallel** where possible to avoid idle time. Lead times are typical; adjust to your organisation.
 
@@ -107,7 +107,7 @@ Order these **in parallel** where possible to avoid idle time. Lead times are ty
 
 ---
 
-## 5. Environment and stack
+# 5. Environment and stack
 
 **Official stack (from EC — Debian 12):**  
 - OpenJDK **1.8**  
@@ -129,7 +129,7 @@ Order these **in parallel** where possible to avoid idle time. Lead times are ty
 
 ---
 
-## 6. Detailed plan with time estimates
+# 6. Detailed plan with time estimates
 
 Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
@@ -149,7 +149,7 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ---
 
-## 7. Risks and mitigations
+# 7. Risks and mitigations
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
@@ -164,16 +164,16 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ---
 
-## 8. Concrete steps (checklist)
+# 8. Concrete steps (checklist)
 
-### Phase 0 — Unblock package access
+## Phase 0 — Unblock package access
 
 - [ ] Request Nexus / Digital Building Blocks account or access to TL Manager non-EU v6.0 package (ZIP or WAR).
 - [ ] If no account: check whether ZetesConfidens or EC contact can provide `TL-NEU-6.0.ZIP` (or equivalent) internally.
 - [ ] Download and store the package in a secure project location; verify it contains WAR and/or deployment instructions.
 - [ ] Record where the package is stored and checksum (e.g. SHA-256) for reproducibility.
 
-### Phase 1 — Base VM / host
+## Phase 1 — Base VM / host
 
 - [ ] **Order VM** (see §4): 2 vCPU, 4 GB RAM, 20 GB disk; Rocky Linux 9 (or AlmaLinux 9 / RHEL 9).
 - [ ] Set hostname (e.g. `tl-manager-lab.internal`).
@@ -182,7 +182,7 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 - [ ] Create a dedicated service user for running Tomcat (if not using containers).
 - [ ] Harden OS: disable unnecessary services; ensure `sshd` is key-only if possible.
 
-### Phase 2 — Runtime stack (choose A or B)
+# Phase 2 — Runtime stack (choose A or B)
 
 **Option A — Host install (no containers)**
 
@@ -200,40 +200,40 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 - [ ] Create MySQL database and user inside MySQL container (init script or manual run).
 - [ ] Expose Tomcat port (e.g. 8080) on host.
 
-### Phase 3 — CAS
+## Phase 3 — CAS
 
 - [ ] Deploy Apereo CAS (e.g. overlay from https://github.com/apereo/cas) as a separate WAR or use a minimal CAS Docker image.
 - [ ] Configure CAS to allow one service (TL Manager callback URL); minimal auth (e.g. static user list or LDAP if available).
 - [ ] Note CAS login URL and service URL for TL Manager configuration.
 - [ ] Test CAS login in browser.
 
-### Phase 4 — TL Manager application
+## Phase 4 — TL Manager application
 
 - [ ] Copy TL Manager WAR into Tomcat `webapps/` (e.g. `webapps/ROOT.war` or `webapps/tlmanager.war`).
 - [ ] Create application configuration (per EC manual): JDBC URL, DB user, CAS login URL, CAS service URL, any trust store paths.
 - [ ] Restart Tomcat; check logs for startup errors.
 - [ ] Open TL Manager URL in browser; complete first-time setup if required by the app.
 
-### Phase 5 — Validation
+## Phase 5 — Validation
 
 - [ ] Log in to TL Manager via CAS (operator flow).
 - [ ] Create or import a minimal test trusted list (XML); edit and save.
 - [ ] Confirm audit/logging of operator actions if the app provides it.
 - [ ] Document URL, default roles, and any limitations found.
 
-### Phase 6 — Optional signing
+## Phase 6 — Optional signing
 
 - [ ] Install NexU (or TL Signing Tool if available) on a workstation; configure Estonian eID if applicable.
 - [ ] In TL Manager, test “sign with local device” or “upload signed XML” flow; document result (e.g. “signed but not validated” without CA in trust store).
 
-### Phase 7 — Documentation and evaluation
+## Phase 7 — Documentation and evaluation
 
 - [ ] Write internal doc: architecture, ports, DB credentials storage, backup of DB and config.
 - [ ] Fill production-readiness evaluation (§11); share with Bart.
 
 ---
 
-## 9. Automation where possible
+# 9. Automation where possible
 
 | Task | Automation approach |
 |------|----------------------|
@@ -248,7 +248,7 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ---
 
-## 10. LLM-readable prompts
+# 10. LLM-readable prompts
 
 Use these as-is for an LLM or assistant to generate scripts, configs, or commands. Assume Red Hat / Rocky Linux 9 unless stated.
 
@@ -272,7 +272,7 @@ Use these as-is for an LLM or assistant to generate scripts, configs, or command
 
 ---
 
-## 11. Production-readiness evaluation
+# 11. Production-readiness evaluation
 
 After the working setup is in place, fill this table and add a short narrative for Bart.
 
@@ -291,7 +291,7 @@ After the working setup is in place, fill this table and add a short narrative f
 
 ---
 
-## 12. Forward-looking: post-PoC and scaling
+# 12. Forward-looking: post-PoC and scaling
 
 - **If PoC succeeds:** Plan a “production-like” environment: dedicated VM(s), TLS, real IdP (e.g. company LDAP/OIDC), backup, monitoring, and runbook. Consider separate CAS instance and DB backup retention.
 - **Compliance:** For non-EU TL operators, document how this deployment aligns with any national or contractual requirements (e.g. eIDAS alignment, audit logs).
@@ -301,7 +301,7 @@ After the working setup is in place, fill this table and add a short narrative f
 
 ---
 
-## 13. References
+# 13. References
 
 - **Bart’s briefing** — Single source of truth (this document §1).  
 - **TL Manager (non-EU v6):**  

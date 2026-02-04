@@ -25,9 +25,18 @@ Thumbs.db
 
 # Python
 .venv/
+venv/
+python-confluence/
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Windows / WSL Zone.Identifier (alternate data streams)
+*:Zone.Identifier
 
 # Logs and temp
 *.log

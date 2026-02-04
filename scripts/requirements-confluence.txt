@@ -1,0 +1,4 @@
+# For upload_readme_to_confluence.py
+requests>=2.28.0
+markdown>=3.4.0
+python-dotenv>=1.0.0
