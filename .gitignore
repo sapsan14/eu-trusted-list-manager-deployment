@@ -1,0 +1,36 @@
+# Local and secrets
+.env
+.env.*
+*.pem
+*.key
+*.crt
+secrets/
+*.vault
+
+# TL Manager / app artifacts (do not commit binaries)
+*.war
+TL-NEU*.ZIP
+tlmanager/
+
+# IDE and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Ansible
+.retry
+*.retry
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs and temp
+*.log
+tmp/
+temp/
+.cache/
