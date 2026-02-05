@@ -287,6 +287,9 @@ variables for passwords and URLs.”
 
 # 11. Production-readiness evaluation
 
+Assessment template: `docs/Production-Readiness-Assessment.md`
+(renamed from "Production-Adjustments").
+
 After the working setup is in place, fill this table and add a short narrative for Bart.
 
 | Criterion | Low / Medium / High effort | Notes |

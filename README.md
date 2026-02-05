@@ -12,6 +12,7 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 |------|-------------|
 | [docs/EU-Trusted-List-Manager-Deployment-Plan.md](docs/EU-Trusted-List-Manager-Deployment-Plan.md) | **Main plan:** scope, resource ordering, time estimates, risks, checklists, LLM prompts. |
 | [docs/Podman-Packaging-and-Ansible-Deployment-Plan.md](docs/Podman-Packaging-and-Ansible-Deployment-Plan.md) | **Podman plan:** container count, packaging, Ansible deployment approach. |
+| [docs/Production-Readiness-Assessment.md](docs/Production-Readiness-Assessment.md) | **Assessment template:** production readiness checklist and actions. |
 | `scripts/` | Automation helpers (smoke tests, env checks). |
 | `ansible/` | (Optional) Ansible playbooks for VM setup, Tomcat, MySQL, CAS. |
 
