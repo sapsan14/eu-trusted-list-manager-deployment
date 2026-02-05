@@ -1,0 +1,21 @@
+---
+# Full stack: base server + Tomcat + MySQL + TL Manager (Phases 1, 2, 4)
+# Run from repo root: ansible-playbook -i inventory ansible/playbooks/site.yml
+- name: Base server (Phase 1)
+  hosts: tlmanager
+  become: true
+  roles:
+    - role: base_server
+
+- name: MySQL 8 and Tomcat 9 (Phase 2)
+  hosts: tlmanager
+  become: true
+  roles:
+    - role: mysql
+    - role: tomcat
+
+- name: Deploy TL Manager WAR (Phase 4)
+  hosts: tlmanager
+  become: true
+  roles:
+    - role: tlmanager

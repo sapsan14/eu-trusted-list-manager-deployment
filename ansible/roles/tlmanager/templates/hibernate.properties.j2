@@ -1,0 +1,6 @@
+# Override for TL Manager: use JNDI datasource from context.xml (jdbc/tlmanager).
+# Set driver_class so C3P0ConnectionProvider does not get empty string (ClassNotFoundException).
+# Create/update DB schema on startup (fixes Missing table: TL_AUDIT on empty DB).
+hibernate.connection.datasource=java:comp/env/jdbc/tlmanager
+hibernate.connection.driver_class=com.mysql.cj.jdbc.Driver
+hibernate.hbm2ddl.auto=update

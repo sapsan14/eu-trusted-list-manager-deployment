@@ -1,0 +1,7 @@
+---
+# Phase 4 only — deploy WAR and config (requires packages/TL-NEU-6.0.ZIP or .war)
+- name: TL Manager deployment
+  hosts: tlmanager
+  become: true
+  roles:
+    - tlmanager

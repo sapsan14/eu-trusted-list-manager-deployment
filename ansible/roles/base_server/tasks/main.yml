@@ -1,0 +1,43 @@
+---
+# Phase 1 — Base VM: hostname, firewall, packages, tomcat user
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ base_hostname }}"
+
+- name: Install base packages
+  ansible.builtin.dnf:
+    name: "{{ base_packages }}"
+    state: present
+
+- name: Install podman (optional)
+  ansible.builtin.dnf:
+    name: podman
+    state: present
+  when: base_install_podman | default(false) | bool
+
+- name: Ensure firewalld is started and enabled
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Open firewall ports
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    permanent: true
+    state: enabled
+    immediate: true
+  loop: "{{ base_firewall_ports }}"
+
+- name: Create tomcat group
+  ansible.builtin.group:
+    name: "{{ base_tomcat_group }}"
+    state: present
+
+- name: Create tomcat user (no login shell)
+  ansible.builtin.user:
+    name: "{{ base_tomcat_user }}"
+    group: "{{ base_tomcat_group }}"
+    shell: /sbin/nologin
+    create_home: false
+    state: present

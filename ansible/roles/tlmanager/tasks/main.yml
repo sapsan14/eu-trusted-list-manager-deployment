@@ -1,0 +1,608 @@
+---
+# Deploy TL Manager WAR and config (proxy.properties, application.properties patch, etc.)
+- name: Resolve WAR path (from packages or explicit)
+  ansible.builtin.set_fact:
+    _tlmanager_war_src: "{{ tlmanager_war_path | default((lookup('fileglob', (playbook_dir | dirname | dirname) ~ '/packages/*.war') or lookup('fileglob', (playbook_dir | dirname | dirname) ~ '/packages/*.WAR') or '').split('\n') | first | trim) }}"
+
+- name: Fail when no WAR found
+  ansible.builtin.fail:
+    msg: "No WAR found. Put tl-manager-non-eu.war in packages/ or set tlmanager_war_path."
+  when: _tlmanager_war_src is not defined or _tlmanager_war_src == ""
+
+- name: Ensure webapp context directory exists
+  ansible.builtin.file:
+    path: "{{ tomcat_install_dir | default('/opt/tomcat') }}/webapps/{{ tlmanager_webapp_context }}"
+    state: directory
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0755"
+
+# Official guide §2.4: copy tlmanager-non-eu-config to Tomcat; copy lib files (application-tlmanager-non-eu-custom.properties) to Tomcat lib
+- name: Ensure Tomcat lib directory exists
+  ansible.builtin.file:
+    path: "{{ tomcat_install_dir | default('/opt/tomcat') }}/lib"
+    state: directory
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0755"
+
+- name: Ensure tlmanager-non-eu-config directory exists (official guide §2.4)
+  ansible.builtin.file:
+    path: "{{ tomcat_install_dir | default('/opt/tomcat') }}/tlmanager-non-eu-config"
+    state: directory
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0755"
+
+- name: Deploy application-tlmanager-non-eu-custom.properties to Tomcat lib (official guide §2.4; includes keystore — not in doc)
+  ansible.builtin.template:
+    src: application-tlmanager-non-eu-custom.properties.j2
+    dest: "{{ tomcat_install_dir | default('/opt/tomcat') }}/lib/application-tlmanager-non-eu-custom.properties"
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0644"
+  notify: Restart Tomcat
+
+# Official guide §2.4: copy proxy.properties into Tomcat lib/ (app loads it from there for ProxyConfiguration)
+- name: Deploy proxy.properties to Tomcat lib (official guide §2.4)
+  ansible.builtin.template:
+    src: proxy.properties.j2
+    dest: "{{ tomcat_install_dir | default('/opt/tomcat') }}/lib/proxy.properties"
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0644"
+  notify: Restart Tomcat
+
+- name: Deploy WAR (exploded to context directory)
+  ansible.builtin.unarchive:
+    src: "{{ _tlmanager_war_src }}"
+    dest: "{{ tomcat_install_dir | default('/opt/tomcat') }}/webapps/{{ tlmanager_webapp_context }}"
+  notify: Restart Tomcat
+
+- name: Set webapp dest dir fact
+  ansible.builtin.set_fact:
+    _tlmanager_webapp_dir: "{{ tomcat_install_dir | default('/opt/tomcat') }}/webapps/{{ tlmanager_webapp_context }}"
+
+- name: Ensure WEB-INF/classes exists
+  ansible.builtin.file:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes"
+    state: directory
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0755"
+
+- name: Deploy proxy.properties
+  ansible.builtin.template:
+    src: proxy.properties.j2
+    dest: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/proxy.properties"
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0644"
+  notify: Restart Tomcat
+
+- name: Deploy hibernate.properties (driver_class for C3P0ConnectionProvider)
+  ansible.builtin.template:
+    src: hibernate.properties.j2
+    dest: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/hibernate.properties"
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0644"
+  notify: Restart Tomcat
+
+- name: Patch application.properties — JDBC driver
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^jdbc\\.driverClassName='
+    line: "jdbc.driverClassName=com.mysql.cj.jdbc.Driver"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — JDBC URL
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^jdbc\\.url='
+    line: "jdbc.url=jdbc:mysql://localhost:3306/{{ mysql_tlmanager_database | default('tlmanager') }}?useSSL=false&serverTimezone=UTC"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — JDBC username
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^jdbc\\.username='
+    line: "jdbc.username={{ tlmanager_db_user }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — JDBC password
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^jdbc\\.password='
+    line: "jdbc.password={{ tlmanager_db_password }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.http.enabled
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^proxy\\.http\\.enabled='
+    line: "proxy.http.enabled={{ tlmanager_proxy_http_enabled | lower }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.http.host
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^proxy\\.http\\.host='
+    line: "proxy.http.host={{ tlmanager_proxy_http_host | default('') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.https.enabled
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^proxy\\.https\\.enabled='
+    line: "proxy.https.enabled={{ tlmanager_proxy_https_enabled | lower }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.https.host
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^proxy\\.https\\.host='
+    line: "proxy.https.host={{ tlmanager_proxy_https_host | default('') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.http.port (integer, 0 when disabled)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^proxy\\.http\\.port='
+    line: "proxy.http.port={{ tlmanager_proxy_http_port | default('0') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.https.port (integer, 0 when disabled)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^proxy\\.https\\.port='
+    line: "proxy.https.port={{ tlmanager_proxy_https_port | default('0') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.http.user
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^proxy\\.http\\.user='
+    line: "proxy.http.user={{ tlmanager_proxy_http_user | default('') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.http.password
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^proxy\\.http\\.password='
+    line: "proxy.http.password={{ tlmanager_proxy_http_password | default('') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.https.user
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^proxy\\.https\\.user='
+    line: "proxy.https.user={{ tlmanager_proxy_https_user | default('') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.https.password
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^proxy\\.https\\.password='
+    line: "proxy.https.password={{ tlmanager_proxy_https_password | default('') }}"
+    create: true
+  notify: Restart Tomcat
+
+# Remove any existing proxy exclude lines (WAR may have "proxy.http.exclude = ${proxy.http.exclude}" which blocks resolution)
+- name: Remove legacy proxy.http.exclude / proxy.https.exclude lines from application.properties
+  ansible.builtin.shell: |
+    f="{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    sed -i '/^[[:space:]]*proxy\.http\.exclude[[:space:]]*=/d' "$f"
+    sed -i '/^[[:space:]]*proxy\.https\.exclude[[:space:]]*=/d' "$f"
+  args:
+    executable: /bin/bash
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.http.exclude (excluded hosts)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*proxy\\.http\\.exclude\\s*='
+    line: "proxy.http.exclude={{ tlmanager_proxy_http_exclude | default('') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — proxy.https.exclude (excluded hosts)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*proxy\\.https\\.exclude\\s*='
+    line: "proxy.https.exclude={{ tlmanager_proxy_https_exclude | default('') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Ensure Tomcat conf dir exists for signer keystore
+  ansible.builtin.file:
+    path: "{{ (tlmanager_signer_keystore_path | default('/opt/tomcat/conf/tlmanager-signer.jks')) | dirname }}"
+    state: directory
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0755"
+  when: tlmanager_signer_keystore_create | default(true) | bool
+
+- name: Create minimal signer keystore (avoids keyStore bean NPE for lab UI)
+  ansible.builtin.shell: |
+    keytool -genkeypair \
+      -keystore {{ tlmanager_signer_keystore_path }} \
+      -storepass {{ tlmanager_signer_keystore_password }} \
+      -keypass {{ tlmanager_signer_keystore_password }} \
+      -alias tlmanager \
+      -dname "CN=TL Manager Lab, O=Lab, C=EU" \
+      -validity 3650 -keyalg RSA -keysize 2048
+  args:
+    creates: "{{ tlmanager_signer_keystore_path }}"
+  when: tlmanager_signer_keystore_create | default(true) | bool
+
+- name: Stat signer keystore file (for ownership task)
+  ansible.builtin.stat:
+    path: "{{ tlmanager_signer_keystore_path }}"
+  register: _tlmanager_keystore_stat
+
+- name: Set signer keystore ownership (always when file exists)
+  ansible.builtin.file:
+    path: "{{ tlmanager_signer_keystore_path }}"
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0600"
+  when: _tlmanager_keystore_stat.stat is defined and _tlmanager_keystore_stat.stat.exists
+
+- name: Deploy setenv.sh (JVM -D signer.keystore.path/password so BusinessConfig gets values)
+  ansible.builtin.template:
+    src: setenv.sh.j2
+    dest: "{{ tomcat_install_dir | default('/opt/tomcat') }}/bin/setenv.sh"
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0755"
+  notify: Restart Tomcat
+
+# Keystore: remove WAR legacy line (sed so odd chars/Unicode spaces don't block removal)
+- name: Remove legacy keystore.password = dss-password line via sed
+  ansible.builtin.shell: |
+    sed -i '/keystore\.password.*dss-password/d' "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+  args:
+    executable: /bin/bash
+  notify: Restart Tomcat
+
+- name: Patch application.properties — signer.keystore.path
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^signer\\.keystore\\.path\\s*=\\s*.*'
+    line: "signer.keystore.path={{ tlmanager_signer_keystore_path }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — signer.keystore.password
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^signer\\.keystore\\.password\\s*=\\s*.*'
+    line: "signer.keystore.password={{ tlmanager_signer_keystore_password }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — keystore.path (replace any format, incl. leading spaces)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*keystore\\.path\\s*=\\s*.*'
+    line: "keystore.path={{ tlmanager_signer_keystore_path }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — keystore.password (replace legacy "keystore.password = dss-password")
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*keystore\\.password\\s*=\\s*.*'
+    line: "keystore.password={{ tlmanager_signer_keystore_password }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — signer.keystore.location (alternative for path)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^signer\\.keystore\\.location\\s*=\\s*.*'
+    line: "signer.keystore.location={{ tlmanager_signer_keystore_path }}"
+    create: true
+  notify: Restart Tomcat
+
+# BusinessConfig injects keyStoreFilename, keyStoreType, keyStorePassword (NPE at line 78 if missing)
+- name: Patch application.properties — keystore.filename (keyStoreFilename)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*keystore\\.filename\\s*=\\s*.*'
+    line: "keystore.filename={{ tlmanager_signer_keystore_path }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — keystore.type (keyStoreType)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*keystore\\.type\\s*=\\s*.*'
+    line: "keystore.type=JKS"
+    create: true
+  notify: Restart Tomcat
+
+- name: Replace keystore.file (WAR has ${catalina.base}\\custom-config\\keystore.jks)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*keystore\\.file\\s*=\\s*.*'
+    line: "keystore.file={{ tlmanager_signer_keystore_path }}"
+    create: true
+  notify: Restart Tomcat
+
+# Spring may bind keyStoreFilename/keyStoreType/keyStorePassword (camelCase) or key-store-* (relaxed)
+- name: Patch application.properties — keyStoreFilename (camelCase for BusinessConfig)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*keyStoreFilename\\s*=\\s*.*'
+    line: "keyStoreFilename={{ tlmanager_signer_keystore_path }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — keyStoreType (camelCase)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*keyStoreType\\s*=\\s*.*'
+    line: "keyStoreType=JKS"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — keyStorePassword (camelCase)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*keyStorePassword\\s*=\\s*.*'
+    line: "keyStorePassword={{ tlmanager_signer_keystore_password }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — key-store-filename (relaxed binding)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*key-store-filename\\s*=\\s*.*'
+    line: "key-store-filename={{ tlmanager_signer_keystore_path }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — key-store-type
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*key-store-type\\s*=\\s*.*'
+    line: "key-store-type=JKS"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — key-store-password
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^\\s*key-store-password\\s*=\\s*.*'
+    line: "key-store-password={{ tlmanager_signer_keystore_password }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — hibernate.hbm2ddl.auto (create/update schema)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^hibernate\\.hbm2ddl\\.auto='
+    line: "hibernate.hbm2ddl.auto=update"
+    create: true
+  notify: Restart Tomcat
+
+# DEBUG logger for BusinessConfig (keyStore NPE troubleshooting)
+- name: Stat logback config in webapp
+  ansible.builtin.stat:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/{{ item }}"
+  loop:
+    - logback.xml
+    - logback-spring.xml
+  register: _logback_stat
+  loop_control:
+    label: "{{ item }}"
+
+- name: Add DEBUG logger for BusinessConfig to logback.xml
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/logback.xml"
+    insertbefore: '^\\s*</configuration>'
+    line: '  <logger name="eu.europa.ec.joinup.tsl.business.config" level="DEBUG"/>'
+    regexp: '.*<logger name="eu\\.europa\\.ec\\.joinup\\.tsl\\.business\\.config".*'
+  when: _logback_stat.results[0].stat is defined and _logback_stat.results[0].stat.exists
+  notify: Restart Tomcat
+
+- name: Add DEBUG logger for BusinessConfig to logback-spring.xml
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/logback-spring.xml"
+    insertbefore: '^\\s*</configuration>'
+    line: '  <logger name="eu.europa.ec.joinup.tsl.business.config" level="DEBUG"/>'
+    regexp: '.*<logger name="eu\\.europa\\.ec\\.joinup\\.tsl\\.business\\.config".*'
+  when: _logback_stat.results[1].stat is defined and _logback_stat.results[1].stat.exists
+  notify: Restart Tomcat
+
+- name: Stat log4j2 config in webapp
+  ansible.builtin.stat:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/log4j2.xml"
+  register: _log4j2_stat
+
+- name: Add DEBUG logger for BusinessConfig to log4j2.xml
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/log4j2.xml"
+    insertbefore: '^\\s*</Loggers>'
+    line: '    <Logger name="eu.europa.ec.joinup.tsl.business.config" level="DEBUG"/>'
+    regexp: '.*<Logger name="eu\\.europa\\.ec\\.joinup\\.tsl\\.business\\.config".*'
+  when: _log4j2_stat.stat is defined and _log4j2_stat.stat.exists
+  notify: Restart Tomcat
+
+- name: Find MySQL connector JAR on host (RPM or Tomcat lib)
+  ansible.builtin.find:
+    paths:
+      - /usr/share/java
+      - "{{ tomcat_install_dir | default('/opt/tomcat') }}/lib"
+    patterns: "mysql*connector*.jar"
+  register: _mysql_jar_find
+
+- name: Ensure MySQL connector package is installed when no JAR found
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - mysql-connector-java
+    - mysql-connector-j
+  register: _mysql_connector_installed
+  ignore_errors: true
+  when: _mysql_jar_find.matched == 0
+
+- name: Find MySQL connector JAR again after install
+  ansible.builtin.find:
+    paths: /usr/share/java
+    patterns: "mysql*connector*.jar"
+  register: _mysql_jar_find
+  when: (_mysql_jar_find.matched | default(0)) == 0
+
+- name: Ensure /usr/share/java exists for connector download
+  ansible.builtin.file:
+    path: /usr/share/java
+    state: directory
+    mode: "0755"
+  when: (_mysql_jar_find.matched | default(0)) == 0
+
+- name: Download MySQL Connector/J to host when RPM not available
+  ansible.builtin.get_url:
+    url: "{{ tlmanager_mysql_connector_url }}"
+    dest: "/usr/share/java/mysql-connector-java.jar"
+    mode: "0644"
+  when: (_mysql_jar_find.matched | default(0)) == 0
+
+- name: Find MySQL connector JAR after download
+  ansible.builtin.find:
+    paths: /usr/share/java
+    patterns: "mysql*connector*.jar"
+  register: _mysql_jar_find
+  when: (_mysql_jar_find.matched | default(0)) == 0
+
+- name: Copy MySQL connector to WEB-INF/lib
+  ansible.builtin.copy:
+    src: "{{ (_mysql_jar_find.files | default([]) | map(attribute='path') | list | first) }}"
+    dest: "{{ _tlmanager_webapp_dir }}/WEB-INF/lib/mysql-connector-java.jar"
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0644"
+    remote_src: true
+  when: (_mysql_jar_find.matched | default(0)) > 0
+  notify: Restart Tomcat
+
+- name: Fail when MySQL connector JAR not found
+  ansible.builtin.fail:
+    msg: "MySQL connector JAR not found. Install mysql-connector-java or mysql-connector-j on the host, or put the JAR in /usr/share/java/."
+  when: (_mysql_jar_find.matched | default(0)) == 0
+
+- name: Set ownership of deployed webapp
+  ansible.builtin.file:
+    path: "{{ _tlmanager_webapp_dir }}"
+    state: directory
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    recurse: true
+
+# Diagnostic: capture effective keystore-related config (run with -v to see if NPE persists)
+- name: Capture effective keystore config from application.properties
+  ansible.builtin.shell: |
+    grep -E 'keystore|signer\.keystore' "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties" || true
+  register: _effective_keystore_config
+  changed_when: false
+
+- name: Show effective keystore config (run playbook with -v to see this)
+  ansible.builtin.debug:
+    msg: "Effective keystore/signer lines in application.properties:\n{{ _effective_keystore_config.stdout_lines | default([]) | join('\n') }}"
+  when: _effective_keystore_config.stdout is defined and (ansible_verbosity | default(0)) >= 1
+
+# Run handlers now so Tomcat restarts with new lib/*.properties and setenv.sh before we wait and check
+- name: Flush handlers (Restart Tomcat so new config is loaded)
+  ansible.builtin.meta: flush_handlers
+
+- name: Restart Tomcat (ensure process uses new setenv.sh and Tomcat lib config)
+  ansible.builtin.systemd:
+    name: tomcat
+    state: restarted
+    daemon_reload: true
+
+- name: Wait for Tomcat to start
+  ansible.builtin.wait_for:
+    port: 8080
+    delay: 3
+    timeout: 60
+
+- name: Allow time for context startup or failure to be logged
+  ansible.builtin.shell: sleep 25
+  changed_when: false
+
+- name: Check catalina.out for context startup failure
+  ansible.builtin.slurp:
+    src: "{{ tomcat_install_dir | default('/opt/tomcat') }}/logs/catalina.out"
+  register: _catalina_slurp
+  changed_when: false
+  no_log: true   # avoid dumping entire catalina.out with -v
+
+- name: Set catalina log check vars (avoids Jinja in when)
+  ansible.builtin.set_fact:
+    _catalina_log: "{{ _catalina_slurp.content | b64decode }}"
+    _context_fail_str: "Context [/{{ tlmanager_webapp_context }}] startup failed"
+    # Last 250 lines for fail message (use slurp result; same-task vars not yet available)
+    _catalina_tail: "{{ ((_catalina_slurp.content | b64decode).split('\n'))[-250:] | join('\n') }}"
+  no_log: true   # _catalina_log / _catalina_tail are large; only shown in fail task when needed
+
+# Only fail if the most recent "Context ... startup failed" is from the current run (after last server start)
+- name: Check if context failure is from current Tomcat run
+  ansible.builtin.shell: |
+    f="{{ tomcat_install_dir | default('/opt/tomcat') }}/logs/catalina.out"
+    fail_ln=$(grep -n 'Context \[/{{ tlmanager_webapp_context }}\] startup failed' "$f" 2>/dev/null | tail -1 | cut -d: -f1)
+    start_ln=$(grep -n 'Server version name\|Catalina.start' "$f" 2>/dev/null | tail -1 | cut -d: -f1)
+    if [ -z "$fail_ln" ]; then echo "ok"; exit 0; fi
+    if [ -z "$start_ln" ]; then echo "fail"; exit 0; fi
+    [ "$fail_ln" -gt "$start_ln" ] && echo "fail" || echo "ok"
+  register: _current_run_failed
+  changed_when: false
+
+- name: Set fact when current run has context failure
+  ansible.builtin.set_fact:
+    _fail_current_run: "{{ _current_run_failed.stdout == 'fail' }}"
+  when: _current_run_failed.stdout is defined
+
+# Extract ~120 lines before last "Context ... startup failed" so we see the real exception, not C3P0 DEBUG noise
+- name: Extract catalina excerpt around context startup failure (on host)
+  ansible.builtin.shell: |
+    f="{{ tomcat_install_dir | default('/opt/tomcat') }}/logs/catalina.out"
+    line=$(grep -n 'Context \[/{{ tlmanager_webapp_context }}\] startup failed' "$f" 2>/dev/null | tail -1 | cut -d: -f1)
+    if [ -n "$line" ] && [ "$line" -gt 0 ]; then
+      start=$(( line - 120 ))
+      [ "$start" -lt 1 ] && start=1
+      sed -n "${start},$(( line + 10 ))p" "$f"
+    else
+      echo "(no 'Context ... startup failed' line found)"
+    fi
+  register: _catalina_excerpt
+  changed_when: false
+  when: _fail_current_run | default(false) | bool
+  no_log: true
+
+- name: Fail if context startup failed (placeholder / JDBC / missing table)
+  ansible.builtin.fail:
+    msg: |-
+      Context failed to start. Check catalina.out on the host.
+      Excerpt around last "Context ... startup failed" (real exception, not C3P0 noise):
+      ---
+      {{ _catalina_excerpt.stdout | default(_catalina_tail) }}
+      ---
+      (CAS does not fix this — the app must start first; fix the exception above.)
+  when: _fail_current_run | default(false) | bool

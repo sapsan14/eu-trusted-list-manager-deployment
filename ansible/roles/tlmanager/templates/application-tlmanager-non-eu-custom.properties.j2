@@ -1,0 +1,41 @@
+# TL Manager Non-EU — custom properties (official guide: place in Tomcat lib/)
+# Overrides/supplements WAR application.properties. Keystore settings here avoid keyStore NPE (BusinessConfig).
+
+# CAS (update with your CAS server)
+casServerUrl={{ tlmanager_cas_server_url | default('http://localhost:8080/cas-server-webapp-4.0.0') }}
+casServiceUrl={{ tlmanager_cas_service_url | default('http://localhost:8080/tl-manager-non-eu') }}
+
+# Proxy (required by ProxyConfiguration bean — resolve proxy.http.exclude / proxy.https.exclude placeholders)
+proxy.http.enabled={{ tlmanager_proxy_http_enabled | default(false) | lower }}
+proxy.https.enabled={{ tlmanager_proxy_https_enabled | default(false) | lower }}
+proxy.http.host={{ tlmanager_proxy_http_host | default('') }}
+proxy.http.port={{ tlmanager_proxy_http_port | default('0') }}
+proxy.http.user={{ tlmanager_proxy_http_user | default('') }}
+proxy.http.password={{ tlmanager_proxy_http_password | default('') }}
+proxy.http.exclude={{ tlmanager_proxy_http_exclude | default('') }}
+proxy.https.host={{ tlmanager_proxy_https_host | default('') }}
+proxy.https.port={{ tlmanager_proxy_https_port | default('0') }}
+proxy.https.user={{ tlmanager_proxy_https_user | default('') }}
+proxy.https.password={{ tlmanager_proxy_https_password | default('') }}
+proxy.https.exclude={{ tlmanager_proxy_https_exclude | default('') }}
+
+# Database
+jdbc.driverClassName=com.mysql.cj.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/{{ mysql_tlmanager_database | default('tlmanager') }}?useSSL=false&serverTimezone=UTC
+jdbc.username={{ tlmanager_db_user }}
+jdbc.password={{ tlmanager_db_password }}
+
+# Signer keystore (required by keyStore bean — not documented in official Installation guide)
+signer.keystore.path={{ tlmanager_signer_keystore_path }}
+signer.keystore.password={{ tlmanager_signer_keystore_password }}
+keystore.path={{ tlmanager_signer_keystore_path }}
+keystore.password={{ tlmanager_signer_keystore_password }}
+keystore.filename={{ tlmanager_signer_keystore_path }}
+keystore.type=JKS
+keystore.file={{ tlmanager_signer_keystore_path }}
+keyStoreFilename={{ tlmanager_signer_keystore_path }}
+keyStoreType=JKS
+keyStorePassword={{ tlmanager_signer_keystore_password }}
+key-store-filename={{ tlmanager_signer_keystore_path }}
+key-store-type=JKS
+key-store-password={{ tlmanager_signer_keystore_password }}

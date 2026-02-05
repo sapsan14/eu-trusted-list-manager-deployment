@@ -1,0 +1,17 @@
+# Copy to inventory (or use -i inventory.example)
+# Set ansible_user and SSH key; put secrets in group_vars/tlmanager/vault.yml or --extra-vars
+[tlmanager]
+tl-manager-lab.internal ansible_connection=ssh ansible_user=root
+
+[tlmanager:vars]
+# base_server
+base_hostname: tl-manager-lab.internal
+
+# mysql — use vault or -e
+mysql_tlmanager_password: "CHANGE_ME"
+
+# tlmanager role — DB password must match mysql
+tlmanager_db_password: "CHANGE_ME"
+# Optional: CAS URLs when CAS is deployed
+# tlmanager_cas_login_url: "https://cas-lab.internal/cas/login"
+# tlmanager_cas_service_url: "https://tl-manager-lab.internal/"

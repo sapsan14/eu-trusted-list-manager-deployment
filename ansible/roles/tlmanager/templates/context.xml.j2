@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+  <Resource name="jdbc/tlmanager"
+            auth="Container"
+            type="javax.sql.DataSource"
+            maxTotal="20"
+            maxIdle="10"
+            maxWaitMillis="10000"
+            username="{{ tlmanager_db_user }}"
+            password="{{ tlmanager_db_password }}"
+            driverClassName="com.mysql.cj.jdbc.Driver"
+            url="{{ tlmanager_db_url }}?useSSL=false&amp;serverTimezone=UTC"/>
+{% if tlmanager_cas_login_url | length > 0 %}
+  <!-- CAS config may be in application properties; set tlmanager_cas_login_url / tlmanager_cas_service_url -->
+{% endif %}
+</Context>

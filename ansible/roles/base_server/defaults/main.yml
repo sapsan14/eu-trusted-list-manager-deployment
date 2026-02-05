@@ -1,0 +1,20 @@
+---
+# Base server (Phase 1) — RHEL 9 / Rocky 9
+base_hostname: tl-manager-lab.internal
+base_packages:
+  - git
+  - curl
+  - wget
+  - vim
+  - java-1.8.0-openjdk
+  - java-1.8.0-openjdk-devel
+  - firewalld
+# Optional: add podman if you want containers later
+base_install_podman: false
+base_tomcat_user: tomcat
+base_tomcat_group: tomcat
+base_firewall_ports:
+  - "22/tcp"   # SSH
+  - "80/tcp"   # HTTP
+  - "443/tcp"  # HTTPS
+  - "8080/tcp" # Tomcat (if not behind proxy)

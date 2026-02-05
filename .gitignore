@@ -6,11 +6,12 @@
 *.crt
 secrets/
 *.vault
+packages/*
 
 # TL Manager / app artifacts (do not commit binaries)
 *.war
 TL-NEU*.ZIP
-tlmanager/
+/tlmanager/
 
 # IDE and OS
 .idea/

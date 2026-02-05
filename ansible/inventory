@@ -1,0 +1,13 @@
+# Copy to inventory (or use -i inventory.example)
+# Set ansible_user and SSH key; put secrets in group_vars/tlmanager/vault.yml or --extra-vars
+[tlmanager]
+tl-manager-lab.internal ansible_connection=ssh ansible_user=anton
+
+[tlmanager:vars]
+# base_server
+base_hostname=tl-manager-lab.internal
+
+# mysql / tlmanager — passwords are passed via -e or vault
+
+# Optional: explicit WAR path on controller (by default uses packages/tl-manager-non-eu.war)
+# tlmanager_war_path="/home/anton/projects/eu-trusted-list-manager-deployment/packages/tl-manager-non-eu.war"

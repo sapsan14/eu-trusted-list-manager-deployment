@@ -1,0 +1,7 @@
+---
+# Phase 1 only — hostname, firewall, packages, tomcat user
+- name: Base server
+  hosts: tlmanager
+  become: true
+  roles:
+    - base_server

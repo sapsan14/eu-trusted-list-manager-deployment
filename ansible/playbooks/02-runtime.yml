@@ -1,0 +1,8 @@
+---
+# Phase 2 only — MySQL 8 + Tomcat 9
+- name: MySQL and Tomcat
+  hosts: tlmanager
+  become: true
+  roles:
+    - mysql
+    - tomcat

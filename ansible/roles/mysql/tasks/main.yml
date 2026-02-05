@@ -1,0 +1,40 @@
+---
+# Phase 2 — MySQL 8 server, database and user for TL Manager
+- name: Install MySQL server
+  ansible.builtin.dnf:
+    name: mysql-server
+    state: present
+
+- name: Start and enable mysqld
+  ansible.builtin.service:
+    name: mysqld
+    state: started
+    enabled: true
+
+- name: Wait for MySQL to be ready
+  ansible.builtin.wait_for:
+    path: /var/lib/mysql/mysql.sock
+    timeout: 60
+
+- name: Install MySQL Python driver for Ansible modules
+  ansible.builtin.dnf:
+    name: python3-PyMySQL
+    state: present
+
+- name: Create TL Manager database
+  community.mysql.mysql_db:
+    name: "{{ mysql_tlmanager_database }}"
+    state: present
+
+- name: Create TL Manager MySQL user
+  community.mysql.mysql_user:
+    name: "{{ mysql_tlmanager_user }}"
+    password: "{{ mysql_tlmanager_password }}"
+    host: "{{ item }}"
+    priv: "{{ mysql_tlmanager_database }}.*:ALL"
+    state: present
+  loop:
+    - localhost
+    - "127.0.0.1"
+  no_log: true
+  when: mysql_tlmanager_password | length > 0

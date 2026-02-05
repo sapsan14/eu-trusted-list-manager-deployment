@@ -1,0 +1,15 @@
+# Proxy configuration for TL Manager (ProxyConfiguration bean).
+# httpPort/httpsPort must be integers (use 0 when proxy disabled).
+# exclude = excluded hosts (e.g. comma-separated), empty when no proxy.
+proxy.http.enabled={{ tlmanager_proxy_http_enabled | lower }}
+proxy.https.enabled={{ tlmanager_proxy_https_enabled | lower }}
+proxy.http.host={{ tlmanager_proxy_http_host | default('') }}
+proxy.http.port={{ tlmanager_proxy_http_port | default('0') }}
+proxy.http.user={{ tlmanager_proxy_http_user | default('') }}
+proxy.http.password={{ tlmanager_proxy_http_password | default('') }}
+proxy.http.exclude={{ tlmanager_proxy_http_exclude | default('') }}
+proxy.https.host={{ tlmanager_proxy_https_host | default('') }}
+proxy.https.port={{ tlmanager_proxy_https_port | default('0') }}
+proxy.https.user={{ tlmanager_proxy_https_user | default('') }}
+proxy.https.password={{ tlmanager_proxy_https_password | default('') }}
+proxy.https.exclude={{ tlmanager_proxy_https_exclude | default('') }}

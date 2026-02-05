@@ -1,0 +1,34 @@
+---
+# TL Manager (non-EU) — deploy WAR and config
+# WAR path: packages/tl-manager-non-eu.war or packages/TL-NEU-6.0.ZIP (extracts .war)
+tlmanager_webapp_context: "tl-manager-non-eu"  # context path = /tl-manager-non-eu
+# tlmanager_war_path: set in inventory or leave unset to auto-detect from packages/
+
+# Proxy: disabled by default so app starts without proxy; set in proxy.properties and application.properties
+tlmanager_proxy_http_enabled: false
+tlmanager_proxy_https_enabled: false
+# Port must be an integer (0 = not used when proxy disabled)
+tlmanager_proxy_http_host: ""
+tlmanager_proxy_http_port: "0"
+tlmanager_proxy_http_user: ""
+tlmanager_proxy_http_password: ""
+tlmanager_proxy_https_host: ""
+tlmanager_proxy_https_port: "0"
+tlmanager_proxy_https_user: ""
+tlmanager_proxy_https_password: ""
+# Excluded hosts (comma-separated or empty); placeholder proxy.http.exclude / proxy.https.exclude
+tlmanager_proxy_http_exclude: ""
+tlmanager_proxy_https_exclude: ""
+
+# Signer keystore (required by SignersService / keyStore bean; NPE if missing).
+# Role can create a minimal JKS for lab so the UI starts; replace with real QSCD/keystore for signing.
+tlmanager_signer_keystore_path: "/opt/tomcat/conf/tlmanager-signer.jks"
+tlmanager_signer_keystore_password: "changeit"
+tlmanager_signer_keystore_create: true   # create minimal JKS if path missing
+
+# Official guide: application-tlmanager-non-eu-custom.properties in Tomcat lib (CAS URLs)
+tlmanager_cas_server_url: "http://localhost:8080/cas-server-webapp-4.0.0"
+tlmanager_cas_service_url: "http://localhost:8080/tl-manager-non-eu"
+
+# Fallback when dnf package is not available: download MySQL Connector/J from Maven Central
+tlmanager_mysql_connector_url: "https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar"

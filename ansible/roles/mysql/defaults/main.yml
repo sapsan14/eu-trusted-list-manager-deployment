@@ -1,0 +1,6 @@
+---
+# MySQL 8 for TL Manager — RHEL 9 / Rocky 9
+mysql_tlmanager_database: tlmanager
+mysql_tlmanager_user: tlmanager
+# Set mysql_tlmanager_password in group_vars or vault (required)
+mysql_tlmanager_password: ""  # override with vault
