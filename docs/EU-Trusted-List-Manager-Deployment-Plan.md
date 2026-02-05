@@ -122,7 +122,9 @@ Order these **in parallel** where possible to avoid idle time. Lead times are ty
 - **App server:** Apache Tomcat 9.0.x (align with 9.0.102 if possible)  
 - **Database:** MySQL 8.0.x (or MariaDB 10.6+ if compatible per manual)  
 - **Auth:** CAS (Apereo CAS) — SSO for operator login  
-- **Deployment:** Single VM **or** Podman containers (Tomcat + MySQL + optional CAS container)
+- **Deployment:** Single VM **or** Podman containers (3-container baseline:
+  tlm-app, tlm-db, tlm-cas; optional reverse proxy/TLS). See
+  `docs/Podman-Packaging-and-Ansible-Deployment-Plan.md`.
 
 **CAS (Central Authentication Service):**  
 - Apereo CAS: https://github.com/apereo/cas  
@@ -196,10 +198,13 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 **Option B — Podman**
 
-- [ ] Write a `Dockerfile` or use image for Tomcat 9 + OpenJDK 8; image for MySQL 8.
-- [ ] Create `podman-compose.yml` or shell script: start MySQL container, Tomcat container; mount WAR deployment dir or copy WAR into image.
-- [ ] Create MySQL database and user inside MySQL container (init script or manual run).
-- [ ] Expose Tomcat port (e.g. 8080) on host.
+- [ ] Build/pull images: tlm-app (Tomcat 9 + OpenJDK 8 + TL Manager WAR),
+  tlm-cas (CAS), tlm-db (MySQL 8).
+- [ ] Create a Podman pod; attach containers; mount volumes for DB data and app
+  config; keep DB port internal.
+- [ ] Deploy via **Ansible** using `containers.podman` modules (pod, volumes,
+  images, containers), not ad-hoc scripts.
+- [ ] Expose Tomcat port (e.g. 8080) or add optional reverse proxy for TLS.
 
 ## Phase 3 — CAS
 
@@ -240,12 +245,15 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 |------|----------------------|
 | VM provisioning | Ansible playbook or Terraform: create VM, hostname, firewall, base packages, `podman`. |
 | OpenJDK + Tomcat + MySQL on host | Ansible: install packages, unpack Tomcat, create DB and user, deploy config files. |
-| Podman stack | `podman-compose` or shell: start MySQL, Tomcat; init DB from SQL file. |
+| Podman stack | Ansible: build/pull images, create pod/volumes, run containers, manage systemd. |
 | CAS deployment | Ansible or container: deploy CAS WAR, drop minimal `application.properties` (or YAML). |
 | TL Manager config | Ansible template or script: write `context.xml` / app properties from variables (DB URL, CAS URL). |
 | Smoke test | Script: `curl` CAS login page, then TL Manager URL; optional Selenium/Playwright for UI login (LLM can generate script from prompt). |
 
-**Deliverable idea:** One Ansible playbook (or Podman Compose + one init script) that: installs OpenJDK 8, Tomcat 9, MySQL 8, deploys WAR and config, and optionally starts a minimal CAS — so that only “obtain WAR and set variables” remains manual.
+**Deliverable idea:** One Ansible playbook that: installs Podman, builds/pulls
+images, creates the pod and volumes, deploys tlm-app/tlm-cas/tlm-db, and
+optionally adds a reverse proxy — so that only “obtain WAR and set variables”
+remains manual.
 
 ---
 
@@ -259,8 +267,12 @@ Use these as-is for an LLM or assistant to generate scripts, configs, or command
 **Prompt 2 — Tomcat and MySQL on host**  
 “Generate Ansible tasks for Rocky Linux 9: install Apache Tomcat 9.0.102 from tarball into /opt/tomcat, run as user tomcat, listen on 8080; install MySQL 8 server, create database ‘tlmanager’ and user ‘tlmanager’ with a password from variable; add MySQL connector JAR to Tomcat lib. Output tasks only, no playbook wrapper.”
 
-**Prompt 3 — Podman stack**  
-“Write a podman-compose.yml or shell script that: runs MySQL 8 container with a named volume and env MYSQL_DATABASE=tlmanager, MYSQL_USER and MYSQL_PASSWORD; runs a Tomcat 9 container with OpenJDK 8, mounting a host directory for webapps so we can drop a WAR. Expose Tomcat on host 8080. Include a short README with start/stop commands.”
+**Prompt 3 — Podman stack (Ansible)**  
+“Generate Ansible tasks using containers.podman modules that: create a Podman
+pod; run MySQL 8 with a named volume and env MYSQL_DATABASE=tlmanager,
+MYSQL_USER and MYSQL_PASSWORD; run a Tomcat 9 + OpenJDK 8 container with the
+TL Manager WAR; run a minimal CAS container; expose Tomcat on host 8080. Use
+variables for passwords and URLs.”
 
 **Prompt 4 — CAS minimal**  
 “I need minimal Apereo CAS 6.x configuration for one service: the service ID is ‘https://tl-manager-lab.internal/.*’ and the CAS server URL is https://cas-lab.internal/cas. Provide application.yml (or properties) snippets for in-memory service registry and one static user (e.g. admin/admin) for testing. No LDAP, no MFA.”
