@@ -30,5 +30,12 @@ tlmanager_signer_keystore_create: true   # create minimal JKS if path missing
 tlmanager_cas_server_url: "http://localhost:8080/cas-server-webapp-4.0.0"
 tlmanager_cas_service_url: "http://localhost:8080/tl-manager-non-eu"
 
+# CAS HTTPS truststore (required when CAS uses self-signed cert)
+tlmanager_cas_truststore_path: "/opt/tomcat/conf/cas-truststore.jks"
+tlmanager_cas_truststore_password: "changeit"
+tlmanager_cas_truststore_alias: "cas-tomcat"
+tlmanager_cas_truststore_create: true
+tlmanager_cas_cert_path: "/opt/tomcat/conf/cas-https.crt"
+
 # Fallback when dnf package is not available: download MySQL Connector/J from Maven Central
 tlmanager_mysql_connector_url: "https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar"

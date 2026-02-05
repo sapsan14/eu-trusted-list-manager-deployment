@@ -54,11 +54,18 @@
     mode: "0640"
   when: tomcat_https_enabled
 
+- name: Remove existing HTTPS connector block (safety for server.xml)
+  ansible.builtin.blockinfile:
+    path: "{{ tomcat_install_dir }}/conf/server.xml"
+    marker: "<!-- {mark} ANSIBLE TOMCAT HTTPS -->"
+    state: absent
+  when: tomcat_https_enabled
+
 - name: Enable HTTPS connector in Tomcat server.xml
   ansible.builtin.blockinfile:
     path: "{{ tomcat_install_dir }}/conf/server.xml"
     marker: "<!-- {mark} ANSIBLE TOMCAT HTTPS -->"
-    insertafter: "^\\s*<Connector port=\""
+    insertbefore: "^\\s*<!-- A \"Connector\" using the shared thread pool-->"
     block: |
       <Connector port="{{ tomcat_https_port }}" protocol="org.apache.coyote.http11.Http11NioProtocol"
                  maxThreads="150" SSLEnabled="true" scheme="https" secure="true">

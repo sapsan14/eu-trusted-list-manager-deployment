@@ -1,8 +1,28 @@
 ---
 # Deploy TL Manager WAR and config (proxy.properties, application.properties patch, etc.)
+- name: Resolve WAR candidates (from packages)
+  ansible.builtin.set_fact:
+    _tlmanager_war_candidates: >-
+      {{
+        query('fileglob', (playbook_dir | dirname | dirname) ~ '/packages/*.war')
+        + query('fileglob', (playbook_dir | dirname | dirname) ~ '/packages/*.WAR')
+      }}
+
 - name: Resolve WAR path (from packages or explicit)
   ansible.builtin.set_fact:
-    _tlmanager_war_src: "{{ tlmanager_war_path | default((lookup('fileglob', (playbook_dir | dirname | dirname) ~ '/packages/*.war') or lookup('fileglob', (playbook_dir | dirname | dirname) ~ '/packages/*.WAR') or '').split('\n') | first | trim) }}"
+    _tlmanager_war_src: >-
+      {{
+        tlmanager_war_path
+        | default(
+            (
+              _tlmanager_war_candidates
+              | reject('search', 'cas-server-webapp-4.0.0')
+              | list
+              | first
+            ),
+            true
+          )
+      }}
 
 - name: Fail when no WAR found
   ansible.builtin.fail:
@@ -121,6 +141,22 @@
     create: true
   notify: Restart Tomcat
 
+- name: Patch application.properties — CAS server URL
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^casServerUrl='
+    line: "casServerUrl={{ tlmanager_cas_server_url }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — CAS service URL
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^casServiceUrl='
+    line: "casServiceUrl={{ tlmanager_cas_service_url }}"
+    create: true
+  notify: Restart Tomcat
+
 - name: Patch application.properties — proxy.http.enabled
   ansible.builtin.lineinfile:
     path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
@@ -235,6 +271,43 @@
     group: "{{ tomcat_group | default('tomcat') }}"
     mode: "0755"
   when: tlmanager_signer_keystore_create | default(true) | bool
+
+- name: Export CAS HTTPS certificate from Tomcat keystore
+  ansible.builtin.command:
+    cmd: >-
+      keytool -exportcert -rfc
+      -alias {{ tomcat_https_key_alias | default('tomcat') }}
+      -keystore {{ tomcat_https_keystore_path | default('/opt/tomcat/conf/tomcat.jks') }}
+      -storepass {{ tomcat_https_keystore_password | default('changeit') }}
+      -file {{ tlmanager_cas_cert_path }}
+  args:
+    creates: "{{ tlmanager_cas_cert_path }}"
+  when: tomcat_https_enabled | default(false) and tlmanager_cas_truststore_create
+
+- name: Check CAS certificate in truststore
+  ansible.builtin.command:
+    cmd: >-
+      keytool -list
+      -keystore {{ tlmanager_cas_truststore_path }}
+      -storepass {{ tlmanager_cas_truststore_password }}
+      -alias {{ tlmanager_cas_truststore_alias }}
+  register: _cas_truststore_alias
+  changed_when: false
+  failed_when: false
+  when: tomcat_https_enabled | default(false) and tlmanager_cas_truststore_create
+
+- name: Import CAS certificate into truststore
+  ansible.builtin.command:
+    cmd: >-
+      keytool -importcert -noprompt
+      -alias {{ tlmanager_cas_truststore_alias }}
+      -file {{ tlmanager_cas_cert_path }}
+      -keystore {{ tlmanager_cas_truststore_path }}
+      -storepass {{ tlmanager_cas_truststore_password }}
+  when: tomcat_https_enabled | default(false)
+        and tlmanager_cas_truststore_create
+        and _cas_truststore_alias is defined
+        and _cas_truststore_alias.rc != 0
 
 - name: Create minimal signer keystore (avoids keyStore bean NPE for lab UI)
   ansible.builtin.shell: |

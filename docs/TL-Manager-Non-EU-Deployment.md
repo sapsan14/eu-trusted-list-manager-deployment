@@ -2,6 +2,10 @@
 
 This document describes how **TL Manager non-EU v6** is deployed in this project and what is done **automatically** by Ansible. It complements the PDF guides in `docs/` and the [Deployment Plan](EU-Trusted-List-Manager-Deployment-Plan.md).
 
+Related guides:
+- `docs/VM-Deployment-Guide.md` — step-by-step VM install
+- `docs/Production-Adjustments.md` — production hardening checklist
+
 ---
 
 ## Reference documentation (PDF)
@@ -15,24 +19,24 @@ Official EC page: [TL manager non-EU v6.0](https://ec.europa.eu/digital-building
 
 ---
 
-## Why the official Installation guide doesn’t mention the keyStore error
+## Why the official Installation guide doesn't mention the keyStore error
 
 The **CEF eSignature TLManager Non-EU V6 – Installation/Migration and Utilization guide** (e.g. §2.4–2.5) describes:
 
 - Copying the folder **tlmanager-non-eu-config** into the Tomcat installation folder.
-- Copying from the release **lib** into Tomcat’s **lib**: `application-tlmanager-non-eu-custom.properties`, `proxy.properties`, `logback.xml`, and the MySQL driver.
+- Copying from the release **lib** into Tomcat's **lib**: `application-tlmanager-non-eu-custom.properties`, `proxy.properties`, `logback.xml`, and the MySQL driver.
 - Updating **application-tlmanager-non-eu-custom.properties** with CAS URLs, JDBC URL, username and password.
 
 The guide **does not mention** the **signer keystore** or the **keyStore** bean. If you deploy only as described there (no keystore configuration), the application can fail at startup with HTTP 500 and:
 
 `Factory method 'keyStore' threw exception; nested exception is java.lang.NullPointerException` in `BusinessConfig`.
 
-So the error is **not documented** in the official guide; it is a **documentation gap**. The application’s `SignersService` (and the `keyStore` bean in `BusinessConfig`) requires a configured keystore path and password. Without them, the bean throws an NPE.
+So the error is **not documented** in the official guide; it is a **documentation gap**. The application's `SignersService` (and the `keyStore` bean in `BusinessConfig`) requires a configured keystore path and password. Without them, the bean throws an NPE.
 
 **What this project does:** The Ansible role follows the official layout (Tomcat **lib**, **tlmanager-non-eu-config**) and in addition:
 
 1. Deploys **application-tlmanager-non-eu-custom.properties** into Tomcat **lib** with JDBC, CAS placeholders, **and all signer/keystore properties** (path, password, type, and alternate names the app may use).
-2. Ensures the **keystore file** exists (creates a minimal JKS for lab if missing), sets ownership, and patches the WAR’s **application.properties** and **setenv.sh** so that the keyStore bean receives the same values even if the app reads from the WAR first.
+2. Ensures the **keystore file** exists (creates a minimal JKS for lab if missing), sets ownership, and patches the WAR's **application.properties** and **setenv.sh** so that the keyStore bean receives the same values even if the app reads from the WAR first.
 
 So we both align with the official deployment structure and fill the missing keystore configuration that the guide omits.
 
@@ -55,7 +59,7 @@ Variables: `cas_webapp_context` (default `cas-server-webapp-4.0.0`), optional `c
 - Creates **Tomcat lib** and **tlmanager-non-eu-config** directories (as in the official guide §2.4) and deploys **application-tlmanager-non-eu-custom.properties** into Tomcat **lib** (JDBC, CAS placeholders, and **signer keystore** settings — the latter not mentioned in the guide).
 - Resolves the WAR from `packages/` (e.g. `tl-manager-non-eu.war` or from `TL-NEU-6.0.ZIP`).
 - Deploys the exploded WAR to Tomcat `webapps/tl-manager-non-eu/`.
-- Patches the WAR’s `application.properties`: JDBC driver, URL, username, password; Hibernate `hbm2ddl.auto=update`.
+- Patches the WAR's `application.properties`: JDBC driver, URL, username, password; Hibernate `hbm2ddl.auto=update`.
 - Deploys `proxy.properties` and patches `application.properties` with all proxy settings (enabled, host, port, user, password, exclude) so the UI starts without proxy.
 - Ensures MySQL Connector/J is present: looks for JAR in `/usr/share/java` or Tomcat lib; if missing, installs via dnf or downloads from Maven Central; copies it to `WEB-INF/lib`.
 - Sets ownership of the webapp to the `tomcat` user.
@@ -63,7 +67,7 @@ Variables: `cas_webapp_context` (default `cas-server-webapp-4.0.0`), optional `c
 
 ### Signer keystore (required for UI — keyStore bean)
 
-The application’s **SignersService** depends on a **signer keystore**. If it is missing, the `keyStore` bean in `BusinessConfig` throws `NullPointerException` and the dispatcher servlet fails (HTTP 500). The role makes this work automatically:
+The application's **SignersService** depends on a **signer keystore**. If it is missing, the `keyStore` bean in `BusinessConfig` throws `NullPointerException` and the dispatcher servlet fails (HTTP 500). The role makes this work automatically:
 
 1. **Create directory**  
    Ensures the directory for the keystore exists (e.g. `/opt/tomcat/conf`).
@@ -99,153 +103,24 @@ So you do **not** need to run keytool or edit properties by hand for a lab run. 
 | `tomcat_https_port` | `8443` | HTTPS port for Tomcat. |
 | `tomcat_https_keystore_path` | `/opt/tomcat/conf/tomcat.jks` | Keystore path used by HTTPS connector. |
 | `tomcat_https_keystore_password` | `changeit` | Keystore password for HTTPS connector. |
+| `tlmanager_cas_truststore_path` | `/opt/tomcat/conf/cas-truststore.jks` | Truststore for CAS HTTPS certificate. |
+| `tlmanager_cas_truststore_password` | `changeit` | Truststore password for CAS HTTPS certificate. |
+| `tlmanager_cas_truststore_alias` | `cas-tomcat` | Alias for CAS cert in truststore. |
 
 Credentials for DB and app are taken from `ansible/group_vars/tlmanager/deployment-passwords.yml` (see [Ansible README](../ansible/README.md)).
 
 ---
 
-## After deployment
+## Operational guides
 
-- **URL:** `http://<host>:8080/tl-manager-non-eu/` (with trailing slash). Via SSH tunnel use `-L 8080:localhost:8080` so redirects work.
-- **CAS:** Deployed by playbook `04-cas.yml` (or `site.yml`) at `http://<host>:8080/cas-server-webapp-4.0.0/`. Set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` in app config to match your access (see Troubleshooting — 404 on `/login`). **CAS login (Apereo CAS 4 default):** username **casuser**, password **Mellon** — change for production.
-- **Signing:** The auto-created keystore is for lab (UI starts). Use a real keystore or QSCD for actual signing.
+Operational steps and troubleshooting are maintained in focused guides:
 
----
-## HTTPS requirement for CAS (SSO)
-
-CAS warns if you access it over HTTP: **SSO requires HTTPS** so the CAS ticket-granting cookie (TGC) can be set with the `Secure` flag. Without HTTPS, login may appear to work but **SSO will not**.
-
-Minimal lab setup:
-
-1. Create a Tomcat keystore (self-signed is fine for lab).
-2. Add an HTTPS connector in Tomcat (e.g. port 8443).
-3. Access CAS and TL Manager via `https://` and update `tlmanager_cas_server_url` / `tlmanager_cas_service_url` accordingly.
-
-**Automated with Ansible (recommended):**
-
-- Set `tomcat_https_enabled: true` in `ansible/group_vars/tlmanager/` or inventory.
-- Optionally override:
-  - `tomcat_https_port` (default `8443`)
-  - `tomcat_https_keystore_path` (default `/opt/tomcat/conf/tomcat.jks`)
-  - `tomcat_https_keystore_password` / `tomcat_https_key_password`
-  - `tomcat_https_dname` and `tomcat_https_key_alias`
-- Re-run `ansible-playbook -i inventory playbooks/02-runtime.yml` (or `site.yml`) and then update `tlmanager_cas_server_url` / `tlmanager_cas_service_url` to HTTPS URLs.
-
-For production, use a real certificate from your PKI or ACME and enforce HTTPS only.
-
----
-## Production checklist (minimal)
-
-**Security and TLS**
-- Terminate TLS for Tomcat and CAS (8443 or via reverse proxy).
-- Replace default CAS credentials and configure real IdP (LDAP/OIDC/SAML).
-- Use strong passwords and store secrets in vault (no plaintext in `group_vars`).
-- Harden firewall rules; restrict MySQL to localhost.
-
-**Certificates and hostnames**
-- Use stable DNS names (e.g. `tl-manager.prod.example`, `cas.prod.example`).
-- Issue certificates and configure TLS for both CAS and TL Manager URLs.
-
-**CAS configuration**
-- Define allowed services (TL Manager callback URL).
-- Configure authentication sources (LDAP/OIDC) and roles as required.
-- Validate CAS login over HTTPS and verify SSO behavior.
-
-**Application config**
-- Set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` to HTTPS endpoints.
-- Provide production JDBC credentials and lock down DB access.
-- Replace signer keystore with production QSCD or approved signing keys.
-
-**Operational**
-- Enable backups for MySQL and key material (JKS/QSCD).
-- Configure log retention and monitoring for Tomcat and CAS.
-- Document runbooks and recovery steps.
-
----
-
-## Troubleshooting
-
-### HTTP 500 — keyStore NullPointerException (BusinessConfig.java:78)
-
-If the dispatcher servlet fails with `Factory method 'keyStore' threw exception; nested exception is java.lang.NullPointerException`:
-
-1. **Ensure only our keystore values are used**  
-   The WAR may contain `keystore.password = dss-password` (with spaces). Re-run the playbook so that the role **replaces** any such line with `keystore.password=changeit`. Then check:
-   ```bash
-   sudo grep -E 'signer\.keystore|keystore\.(path|password)' /opt/tomcat/webapps/tl-manager-non-eu/WEB-INF/classes/application.properties
-   ```
-   You should see a single `keystore.password=changeit` (no `keystore.password = dss-password`). Paths should be `/opt/tomcat/conf/tlmanager-signer.jks`.
-
-2. **Enable DEBUG for the config package**  
-   To see which property values are injected into the `keyStore` bean, add a logger for the business config package. If the app uses Logback (e.g. `WEB-INF/classes/logback.xml` or `logback-spring.xml`), add inside `<configuration>`:
-   ```xml
-   <logger name="eu.europa.ec.joinup.tsl.business.config" level="DEBUG"/>
-   ```
-   Restart Tomcat and reproduce the error; then check `/opt/tomcat/logs/catalina.out` (or the app’s log file) for DEBUG lines from `BusinessConfig` showing the path/password values (or their absence). If there is no `logback.xml`, check for `log4j2.xml` or `application.properties` logging settings and set the same logger to DEBUG there.
-
-3. **Verify keystore file**  
-   ```bash
-   sudo ls -la /opt/tomcat/conf/tlmanager-signer.jks
-   ```
-   Must be readable by `tomcat` (owner/group and mode `0600` or `0640`).
-
-4. **If it still fails — capture effective config**  
-   Re-run the playbook with **`-v`** so Ansible prints the *Effective keystore/signer lines* it wrote. On the server you can also run:
-   ```bash
-   grep -E 'keystore|signer\.keystore' /opt/tomcat/webapps/tl-manager-non-eu/WEB-INF/classes/application.properties
-   cat /opt/tomcat/bin/setenv.sh
-   ```
-   Confirm paths point to the real JKS and there is no `keystore.password = dss-password`.
-
-5. **Inspect which property names the app expects**  
-   The NPE is in `BusinessConfig` (line 78). To see the **exact** `@Value("${...}")` keys the class uses, extract the WAR and decompile the bean class, e.g.:
-   ```bash
-   unzip -l tl-manager-non-eu.war | grep BusinessConfig
-   unzip -p tl-manager-non-eu.war WEB-INF/classes/eu/europa/ec/joinup/tsl/business/config/BusinessConfig.class > /tmp/BusinessConfig.class
-   javap -v /tmp/BusinessConfig.class | grep -A1 "RuntimeVisibleAnnotations"
-   ```
-   Or use a decompiler (e.g. CFR, Procyon) on that `.class` and search for `keyStore` and `@Value`. Then add the missing property name to the Ansible role (e.g. in `ansible/roles/tlmanager/tasks/main.yml` and `templates/setenv.sh.j2`).
-
-### Playbook fails: "Context failed to start"
-
-When the role detects that the Tomcat context did not start (e.g. "Context [/tl-manager-non-eu] startup failed" in `catalina.out`), it **prints an excerpt of catalina.out around that line** (about 120 lines before and 10 after) so you see the **real exception and stack trace**, not the C3P0 connection-pool DEBUG noise that often fills the end of the log. Use that excerpt to fix the cause (missing bean, JDBC, placeholder, keyStore, etc.). **Adding CAS will not fix this** — the application must start successfully first; CAS is only for login after the app is running.
-
-### SSH tunnel: app path does not respond (root works)
-
-If the tunnel uses a different local port than 8080, the app may redirect to port 8080 and the browser then tries your local 8080 (not the tunnel). Use **`ssh -L 8080:localhost:8080`** and open `http://localhost:8080/tl-manager-non-eu/`.
-
-### HTTP 404 – Not Found on `/login` (CAS not deployed)
-
-**Symptom:** You open the TL Manager URL and get redirected to `/login?service=...`, then 404.
-
-Then Tomcat returns **404 – The requested resource [/login] is not available**.
-
-**Cause:** TL Manager uses **Spring Security with CAS** (Central Authentication Service). Unauthenticated users are sent to the CAS server’s **login page**. That login page is **not** part of TL Manager — it is served by a separate **CAS** webapp (e.g. Apereo CAS). If CAS is not deployed (or deployed on a different URL than configured), there is no application at `/login` on your Tomcat → 404.
-
-**What to do:**
-
-1. **Deploy CAS** (recommended for real use)  
-   - Run the CAS playbook: `ansible-playbook -i inventory ansible/playbooks/04-cas.yml` (or use `site.yml`, which includes Phase 3). This deploys the CAS WAR from the EC package to the same Tomcat.  
-   - Context path: `/cas-server-webapp-4.0.0`, so the login URL is `http://<host>:<port>/cas-server-webapp-4.0.0/login`.  
-   - Configure TL Manager so it points to that URL via `casServerUrl` and `casServiceUrl` (see below).
-
-2. **Set CAS URLs to match how you access the app**  
-   The app reads `casServerUrl` and `casServiceUrl` from `application-tlmanager-non-eu-custom.properties` (in Tomcat `lib/`). Defaults in the role are:
-   - `tlmanager_cas_server_url: "http://localhost:8080/cas-server-webapp-4.0.0"`
-   - `tlmanager_cas_service_url: "http://localhost:8080/tl-manager-non-eu"`
-
-   If you use an SSH tunnel, set both URLs to the host and port the browser uses (e.g. `http://localhost:8080/...` when using `-L 8080:localhost:8080`), or use the real hostname (e.g. `http://tl-manager-lab.internal:8080/...`).
-
-   After changing these variables, re-run the playbook so the custom properties file is updated, then restart Tomcat.
-
-3. **Lab without CAS**  
-   The application is designed to use CAS; there is no “disable CAS” option in the current Ansible role or in the official guide. To get a working UI without deploying full CAS, you would need to change the app’s security configuration (e.g. form login) inside the WAR or via a profile — that is outside the scope of this deployment.
-
-**Summary:** 404 on `/login` means “CAS login page not found”. Deploy CAS at the URL you set in `casServerUrl`, and set both `casServerUrl` and `casServiceUrl` to the same host/port you use in the browser (including when using an SSH tunnel).
+- `docs/VM-Deployment-Guide.md` — install steps, access URLs, bootstrap user, SSH tunnel, common fixes
+- `docs/Production-Adjustments.md` — production hardening checklist
 
 ---
 
 ## See also
 
-- [EU-Trusted-List-Manager-Deployment-Plan.md](EU-Trusted-List-Manager-Deployment-Plan.md) — full plan, phases, risks, references.
-- [ansible/README.md](../ansible/README.md) — how to run playbooks, variables, troubleshooting.
+- `docs/EU-Trusted-List-Manager-Deployment-Plan.md` — plan, status, and checklists
+- `ansible/README.md` — playbooks and variables

@@ -19,3 +19,21 @@
 - **Если на RHEL что-то ломается:** по плану — развернуть тот же стек на **Debian 12 в Podman** и сравнить; если на Debian работает, а на RHEL нет — зафиксировать как проблему совместимости с RHEL и либо поправить конфиг/окружение на RHEL, либо принять Debian в контейнере как поддерживаемую конфигурацию.
 
 **Итог:** Версию Linux определяем по (1) тому, что указано в EC Service Manual (официальные требования), и (2) корпоративному стандарту (RHEL). **Выбор: начинать с дистрибутива RHEL; при проблемах совместимости — проверить на Debian 12 в контейнере и зафиксировать результат в оценке готовности к продакшену.**
+
+## Подпись (TL Manager)
+
+TL Manager **может подписывать**, но в лабораторной установке используется **минимальный JKS‑keystore**, чтобы UI стартовал. Для продакшена это не подходит — нужен **QSCD** или утвержденные продукционные ключи.
+
+### Где это описано в репо
+- `docs/TL-Manager-Non-EU-Deployment.md` — раздел **Signer keystore**: зачем нужен keystore, как Ansible его создает в лабе, и что для продакшена нужно заменить keystore на реальный.
+- `ansible/roles/tlmanager/defaults/main.yml` — переменные keystore (`tlmanager_signer_keystore_path`, `tlmanager_signer_keystore_password`, `tlmanager_signer_keystore_create`).
+- `docs/Production-Adjustments.md` — раздел **Signing keys (QSCD)**: требования к продакшен‑ключам и их управлению.
+
+### Что нужно подготовить для production‑подписи (минимум)
+- **QSCD или утвержденный ключевой материал** (не лабораторный JKS).
+- Обновить переменные:
+  - `tlmanager_signer_keystore_path` — путь к реальному keystore
+  - `tlmanager_signer_keystore_password` — реальный пароль
+  - `tlmanager_signer_keystore_create: false` — чтобы Ansible не создавал лабовый JKS
+- Обеспечить **хранение/доступ** (права tomcat, бэкапы, ротация, доступ по политикам).
+- Занести пароли в **vault** и убрать plaintext из `group_vars`.

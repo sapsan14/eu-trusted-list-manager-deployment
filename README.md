@@ -12,9 +12,21 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 |------|-------------|
 | [docs/EU-Trusted-List-Manager-Deployment-Plan.md](docs/EU-Trusted-List-Manager-Deployment-Plan.md) | **Main plan:** scope, resource ordering, time estimates, risks, checklists, LLM prompts. Includes current status and English source of truth. |
 | [docs/EU-Trusted-List-Manager-Deployment-Plan-RU.md](docs/EU-Trusted-List-Manager-Deployment-Plan-RU.md) | Russian translation of the main plan (kept in sync with the English version). |
+| [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md) | What Ansible automates, keyStore gap explained, variables reference. |
+| [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md) | VM install guide, access URLs, bootstrap user, SSH tunnel, common fixes. |
+| [docs/Production-Adjustments.md](docs/Production-Adjustments.md) | Production hardening checklist and required adjustments. |
 | `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf` | EC **Service Offering Description** (SOD) for TL Manager (purpose, roles, access); **no OS/stack requirements** inside. |
 | `ansible/` | Ansible roles and playbooks for **Phase 1** (base server), **Phase 2** (Tomcat + MySQL), **Phase 4** (TL Manager). See `ansible/README.md`. |
 | `scripts/` | Automation helpers (e.g. Confluence upload, future smoke tests/env checks). |
+
+---
+
+## Docs map
+
+- Start here: [docs/EU-Trusted-List-Manager-Deployment-Plan.md](docs/EU-Trusted-List-Manager-Deployment-Plan.md)
+- VM lab runbook: [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md)
+- Automation details: [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md)
+- Production hardening: [docs/Production-Adjustments.md](docs/Production-Adjustments.md)
 
 ---
 
@@ -36,6 +48,9 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 5. **Continue manually where needed:**
    - **Phase 3 (CAS)** — minimal Apereo CAS deployment is still manual / separate.
    - **Phase 5–7** — validation, optional signing test, documentation, and production-readiness evaluation (§11).
+6. **Operational guides:**
+   - [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md)
+   - [docs/Production-Adjustments.md](docs/Production-Adjustments.md)
 
 ---
 
@@ -69,14 +84,14 @@ sudo firewall-cmd --list-services
 
 **(Recommended) Use SSH public key auth:**
 
-На **контроллере** (твоя машина / ноутбук):
+On the **controller** (your machine / laptop):
 
 ```bash
-ssh-keygen -t ed25519 -C \"tl-manager-lab\"   # если ключа ещё нет
+ssh-keygen -t ed25519 -C \"tl-manager-lab\"   # if you do not have a key yet
 cat ~/.ssh/id_ed25519.pub
 ```
 
-На **RHEL 9 ВМ** под пользователем, которого будешь использовать как `ansible_user`:
+On the **RHEL 9 VM** under the user you will use as `ansible_user`:
 
 ```bash
 mkdir -p ~/.ssh
@@ -85,13 +100,13 @@ echo 'PASTE_YOUR_PUBLIC_KEY_HERE' >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 ```
 
-После этого вход упрощается:
+After that, login is simpler:
 
 ```bash
 ssh <user>@tl-manager-lab.internal
 ```
 
-Парольный вход можно оставить включённым (для первых шагов) или позже отключить в `/etc/ssh/sshd_config` (`PasswordAuthentication no`) после того как убедишься, что вход по ключу работает.
+Password login can remain enabled for the first steps, or be disabled later in `/etc/ssh/sshd_config` (`PasswordAuthentication no`) after you confirm key login works.
 
 ---
 

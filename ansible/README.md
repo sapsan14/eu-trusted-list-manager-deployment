@@ -14,6 +14,12 @@ Install collections:
 cd ansible && ansible-galaxy collection install -r requirements.yml
 ```
 
+## Docs
+
+- VM deployment: `docs/VM-Deployment-Guide.md`
+- Production adjustments: `docs/Production-Adjustments.md`
+- Deployment details: `docs/TL-Manager-Non-EU-Deployment.md`
+
 ## Layout
 
 - **roles/**
@@ -29,7 +35,7 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 - **group_vars/tlmanager/deployment-passwords.yml** — DB usernames and plain-English passwords for PoC; loaded automatically for `[tlmanager]` hosts so you can run without `-e`
 - **.env.example** (repo root) — same passwords in KEY=VALUE form for reference; Ansible does not read `.env`
 
-## Quick start
+## Quick start (VM)
 
 1. **Package:** Put `TL-NEU-6.0.ZIP` in the repo **`packages/`** directory (or a `.war` file there).
 
@@ -41,18 +47,18 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 
 3. **Credentials (PoC / automatic deployment):** DB usernames and passwords are in **`ansible/group_vars/tlmanager/deployment-passwords.yml`** (e.g. user `tlmanager`, password `TrustedListManagerDatabasePassword`). Loaded automatically — no `-e` needed. To change user or password, edit that file. See **`.env.example`** in repo root for the same values in KEY=VALUE form. For production, use vault or `-e` and do not commit real secrets.
 
-4. **Run** (from repo root or from `ansible/`):
+4. **Run** (from `ansible/`):
    ```bash
-   ansible-galaxy collection install -r ansible/requirements.yml
-   cd ansible && ansible-playbook -i inventory playbooks/site.yml
+   ansible-galaxy collection install -r requirements.yml
+   ansible-playbook -i inventory playbooks/site.yml
    ```
    Or run phase by phase (no password args; they come from group_vars):
    ```bash
-   cd ansible
    ansible-playbook -i inventory playbooks/01-base.yml
    ansible-playbook -i inventory playbooks/02-runtime.yml
    ansible-playbook -i inventory playbooks/04-cas.yml
    ansible-playbook -i inventory playbooks/03-tlmanager.yml
+   ansible-playbook -i inventory playbooks/05-bootstrap-user.yml
    ```
    To fix “Access denied” for user `tlmanager`: re-run so MySQL and the app get the same password from group_vars:
    ```bash
@@ -60,9 +66,26 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
    ansible-playbook -i inventory playbooks/03-tlmanager.yml # updates app and restarts Tomcat
    ```
 
-5. **After run:** Tomcat listens on port **8080**. Open `http://<your-vm>:8080/` (or the context you set).  
-   **CAS** is deployed by **04-cas.yml** (or `site.yml`) at `/cas-server-webapp-4.0.0/`; set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` to match your access (see [TL-Manager-Non-EU-Deployment.md](../docs/TL-Manager-Non-EU-Deployment.md)).  
-   **HTTPS:** CAS SSO requires HTTPS; access CAS and TL Manager over `https://` and configure the URLs accordingly.
+5. **After run:** Tomcat listens on port **8080** (HTTP). Open `http://<your-vm>:8080/` (or the context you set).  
+   **CAS** is deployed by **04-cas.yml** (or `site.yml`) at `/cas-server-webapp-4.0.0/`; set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` to match your access (see `docs/TL-Manager-Non-EU-Deployment.md`).  
+   **HTTPS:** CAS SSO requires HTTPS; enable HTTPS (`tomcat_https_enabled: true`) and access `https://<your-vm>:8443/`. Update CAS URLs to HTTPS and re-run `03-tlmanager.yml`.
+
+   **Inventory snippet (add under `[tlmanager:vars]`):**
+   ```
+   # Enable HTTPS for Tomcat (needed for CAS SSO)
+   tomcat_https_enabled=true
+   # CAS URLs must match the certificate hostname
+   tlmanager_cas_server_url=https://tl-manager-lab.internal:8443/cas-server-webapp-4.0.0
+   tlmanager_cas_service_url=https://tl-manager-lab.internal:8443/tl-manager-non-eu
+   ```
+   **Bootstrap user snippet:**
+   ```
+   # CAS username (ECAS_ID) and display name
+   tlmanager_bootstrap_user_ecas_id=test
+   tlmanager_bootstrap_user_name=Test
+   # Role code: SUP (Super Admin), MAN (Admin), ATH (Authenticated)
+   tlmanager_bootstrap_role_code=SUP
+   ```
 
 ## Variables (main)
 

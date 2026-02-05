@@ -1,0 +1,27 @@
+---
+# Bootstrap a TL Manager user and role mapping (CAS/ECAS user -> TL role)
+- name: TL Manager user bootstrap
+  hosts: tlmanager
+  become: true
+  vars:
+    tlmanager_bootstrap_user_ecas_id: "test"
+    tlmanager_bootstrap_user_name: "Test"
+    tlmanager_bootstrap_role_code: "SUP"   # SUP (Super Admin), MAN (Admin), ATH (Authenticated)
+  tasks:
+    - name: Ensure base roles and map user to role
+      ansible.builtin.shell: |
+        mysql -e "
+        USE tlmanager;
+        INSERT INTO TL_ROLES (CODE, NAME, DESCRIPTION) VALUES
+          ('SUP','Super Administrator','All Access! Cannot be deleted'),
+          ('MAN','Administrator','Access to management menu'),
+          ('ATH','Authenticated','Access to the application')
+        ON DUPLICATE KEY UPDATE NAME=VALUES(NAME), DESCRIPTION=VALUES(DESCRIPTION);
+        INSERT INTO TL_USERS (ECAS_ID, NAME) VALUES ('{{ tlmanager_bootstrap_user_ecas_id }}','{{ tlmanager_bootstrap_user_name }}')
+        ON DUPLICATE KEY UPDATE NAME=VALUES(NAME);
+        INSERT IGNORE INTO TL_USER_ROLE (USER_ID, ROLE_ID)
+        SELECT u.ID, r.ID FROM TL_USERS u JOIN TL_ROLES r
+        WHERE u.ECAS_ID='{{ tlmanager_bootstrap_user_ecas_id }}' AND r.CODE='{{ tlmanager_bootstrap_role_code }}';
+        "
+      args:
+        executable: /bin/bash

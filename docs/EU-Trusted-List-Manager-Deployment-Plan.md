@@ -8,7 +8,7 @@
 
 > **Note on naming:** This plan covers the **Trusted List Manager** (web app for browsing, editing, monitoring Trusted Lists), not a “generator”. The EU also provides a separate **Trusted List Signing Tool** (local signing); that is secondary in scope.
 
-**Current status:** Phases **0, 1, 2 (Option A), and 4** are done; **Phase 3 (CAS) is in progress**. CAS WAR is deployed on Tomcat; remaining: configure CAS service/auth, set `tlmanager_cas_server_url` / `tlmanager_cas_service_url`, and validate login. After CAS is configured and URLs set, Phase 5 (validation) can follow.
+**Current status:** Phases **0–4** are complete (CAS deployed and URLs configured). Phase 5 is partially complete (CAS login works). Remaining: validation tasks and production-readiness evaluation.
 
 ---
 
@@ -206,12 +206,12 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 - [ ] Create MySQL database and user inside MySQL container (init script or manual run).
 - [ ] Expose Tomcat port (e.g. 8080) on host.
 
-## Phase 3 — CAS **(in progress)**
+## Phase 3 — CAS **(done)**
 
 - [x] Deploy Apereo CAS (e.g. overlay from https://github.com/apereo/cas) as a separate WAR or use a minimal CAS Docker image. **Done via Ansible (`04-cas.yml`, CAS WAR from EC package).**
-- [ ] Configure CAS to allow one service (TL Manager callback URL); minimal auth (e.g. static user list or LDAP if available).
-- [ ] Note CAS login URL and service URL; set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` (e.g. in `group_vars/tlmanager/`), then re-run the tlmanager playbook so `application-tlmanager-non-eu-custom.properties` is updated.
-- [ ] Test CAS login in browser; then open TL Manager and complete login (Phase 5).
+- [x] Configure CAS to allow one service (TL Manager callback URL); minimal auth (e.g. static user list or LDAP if available). **Done: default in-memory registry allows HTTP(S) services; user `test/password` in CAS WAR.**
+- [x] Note CAS login URL and service URL; set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` (e.g. in `group_vars/tlmanager/`), then re-run the tlmanager playbook so `application-tlmanager-non-eu-custom.properties` is updated. **Done.**
+- [x] Test CAS login in browser; then open TL Manager and complete login (Phase 5). **Done.**
 
 ## Phase 4 — TL Manager application
 
@@ -223,10 +223,10 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ## Phase 5 — Validation *(after CAS is deployed)*
 
-- [ ] Log in to TL Manager via CAS (operator flow).
+- [x] Log in to TL Manager via CAS (operator flow). **Done.**
 - [ ] Create or import a minimal test trusted list (XML); edit and save.
 - [ ] Confirm audit/logging of operator actions if the app provides it.
-- [ ] Document URL, default roles, and any limitations found.
+- [x] Document URL, default roles, and limitations found. **Done (see docs).**
 
 ## Phase 6 — Optional signing
 
@@ -235,7 +235,7 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ## Phase 7 — Documentation and evaluation
 
-- [ ] Write internal doc: architecture, ports, DB credentials storage, backup of DB and config.
+- [x] Write internal doc: architecture, ports, DB credentials storage, backup of DB and config. **Done: VM guide + production adjustments + deployment doc.**
 - [ ] Fill production-readiness evaluation (§11); share with Bart.
 
 ---

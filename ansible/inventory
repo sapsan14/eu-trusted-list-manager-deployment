@@ -6,6 +6,11 @@ tl-manager-lab.internal ansible_connection=ssh ansible_user=anton
 [tlmanager:vars]
 # base_server
 base_hostname=tl-manager-lab.internal
+# Enable HTTPS for Tomcat (required for CAS SSO)
+tomcat_https_enabled=true
+# CAS URLs must match HTTPS certificate hostname
+tlmanager_cas_server_url=https://tl-manager-lab.internal:8443/cas-server-webapp-4.0.0
+tlmanager_cas_service_url=https://tl-manager-lab.internal:8443/tl-manager-non-eu
 
 # mysql / tlmanager — passwords are passed via -e or vault
 

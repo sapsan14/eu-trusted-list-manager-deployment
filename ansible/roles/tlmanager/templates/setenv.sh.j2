@@ -5,6 +5,8 @@ export CATALINA_OPTS="$CATALINA_OPTS -Dsigner.keystore.path={{ tlmanager_signer_
 export CATALINA_OPTS="$CATALINA_OPTS -Dkeystore.path={{ tlmanager_signer_keystore_path }} -Dkeystore.password={{ tlmanager_signer_keystore_password }}"
 export CATALINA_OPTS="$CATALINA_OPTS -Dkeystore.filename={{ tlmanager_signer_keystore_path }} -Dkeystore.type=JKS"
 export CATALINA_OPTS="$CATALINA_OPTS -DkeyStoreFilename={{ tlmanager_signer_keystore_path }} -DkeyStoreType=JKS -DkeyStorePassword={{ tlmanager_signer_keystore_password }}"
+# Trust CAS HTTPS certificate (self-signed): avoid PKIX errors in CAS client
+export CATALINA_OPTS="$CATALINA_OPTS -Djavax.net.ssl.trustStore={{ tlmanager_cas_truststore_path }} -Djavax.net.ssl.trustStorePassword={{ tlmanager_cas_truststore_password }}"
 # Proxy (ProxyConfiguration bean — resolve placeholder proxy.http.exclude / proxy.https.exclude)
 export CATALINA_OPTS="$CATALINA_OPTS -Dproxy.http.enabled={{ tlmanager_proxy_http_enabled | default(false) | lower }} -Dproxy.https.enabled={{ tlmanager_proxy_https_enabled | default(false) | lower }}"
 export CATALINA_OPTS="$CATALINA_OPTS -Dproxy.http.host={{ tlmanager_proxy_http_host | default('') }} -Dproxy.http.port={{ tlmanager_proxy_http_port | default('0') }}"

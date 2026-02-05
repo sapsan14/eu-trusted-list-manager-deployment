@@ -25,3 +25,5 @@
   become: true
   roles:
     - role: tlmanager
+
+- import_playbook: 05-bootstrap-user.yml
