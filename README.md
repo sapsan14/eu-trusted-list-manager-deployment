@@ -15,6 +15,8 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 | [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md) | What Ansible automates, keyStore gap explained, variables reference. |
 | [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md) | VM install guide, access URLs, bootstrap user, SSH tunnel, common fixes. |
 | [docs/Production-Adjustments.md](docs/Production-Adjustments.md) | Production hardening checklist and required adjustments. |
+| [docs/DSS-and-Signing.md](docs/DSS-and-Signing.md) | DSS relationship and Trusted List signing summary. |
+| [docs/README.md](docs/README.md) | Documentation index (all guides and PDFs). |
 | `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf` | EC **Service Offering Description** (SOD) for TL Manager (purpose, roles, access); **no OS/stack requirements** inside. |
 | `ansible/` | Ansible roles and playbooks for **Phase 1** (base server), **Phase 2** (Tomcat + MySQL), **Phase 4** (TL Manager). See `ansible/README.md`. |
 | `scripts/` | Automation helpers (e.g. Confluence upload, future smoke tests/env checks). |
@@ -27,6 +29,8 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 - VM lab runbook: [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md)
 - Automation details: [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md)
 - Production hardening: [docs/Production-Adjustments.md](docs/Production-Adjustments.md)
+- DSS and signing: [docs/DSS-and-Signing.md](docs/DSS-and-Signing.md)
+- Full docs index: [docs/README.md](docs/README.md)
 
 ---
 

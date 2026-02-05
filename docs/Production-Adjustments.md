@@ -5,6 +5,7 @@ This document lists **what must change** to move from lab/PoC to production.
 Related guides:
 - `docs/VM-Deployment-Guide.md` — VM install and lab access
 - `docs/TL-Manager-Non-EU-Deployment.md` — automation details and variable defaults
+- `docs/DSS-and-Signing.md` — DSS relationship and signing summary
 
 ## 1) Identity and access
 
@@ -69,3 +70,4 @@ Related guides:
 
 - `docs/VM-Deployment-Guide.md` — VM install and lab access
 - `docs/TL-Manager-Non-EU-Deployment.md` — automation details and variable defaults
+- `docs/DSS-and-Signing.md` — DSS relationship and signing summary

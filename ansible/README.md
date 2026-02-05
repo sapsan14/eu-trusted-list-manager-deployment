@@ -19,6 +19,8 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 - VM deployment: `docs/VM-Deployment-Guide.md`
 - Production adjustments: `docs/Production-Adjustments.md`
 - Deployment details: `docs/TL-Manager-Non-EU-Deployment.md`
+- DSS and signing: `docs/DSS-and-Signing.md`
+- Docs index (incl. PDFs): `docs/README.md`
 
 ## Layout
 

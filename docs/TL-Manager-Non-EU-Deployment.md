@@ -5,6 +5,7 @@ This document describes how **TL Manager non-EU v6** is deployed in this project
 Related guides:
 - `docs/VM-Deployment-Guide.md` — step-by-step VM install
 - `docs/Production-Adjustments.md` — production hardening checklist
+- `docs/DSS-and-Signing.md` — DSS relationship and signing summary
 
 ---
 
@@ -117,6 +118,7 @@ Operational steps and troubleshooting are maintained in focused guides:
 
 - `docs/VM-Deployment-Guide.md` — install steps, access URLs, bootstrap user, SSH tunnel, common fixes
 - `docs/Production-Adjustments.md` — production hardening checklist
+- `docs/DSS-and-Signing.md` — DSS relationship and signing summary
 
 ---
 
@@ -124,3 +126,4 @@ Operational steps and troubleshooting are maintained in focused guides:
 
 - `docs/EU-Trusted-List-Manager-Deployment-Plan.md` — plan, status, and checklists
 - `ansible/README.md` — playbooks and variables
+- `docs/README.md` — documentation index (all guides and PDFs)

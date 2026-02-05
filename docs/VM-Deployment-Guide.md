@@ -5,6 +5,7 @@ This guide is a VM-focused runbook for the **Ansible-based** deployment.
 Related guides:
 - `docs/TL-Manager-Non-EU-Deployment.md` — what Ansible automates and variable defaults
 - `docs/Production-Adjustments.md` — production hardening checklist
+- `docs/DSS-and-Signing.md` — DSS relationship and signing summary
 
 ## Prerequisites
 
@@ -82,3 +83,4 @@ https://tl-manager-lab.internal:8443/tl-manager-non-eu/
 
 - `docs/TL-Manager-Non-EU-Deployment.md` — full automation details and variables
 - `docs/Production-Adjustments.md` — production hardening checklist
+- `docs/DSS-and-Signing.md` — DSS relationship and signing summary
