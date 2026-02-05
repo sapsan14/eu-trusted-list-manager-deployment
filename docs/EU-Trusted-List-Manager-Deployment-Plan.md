@@ -4,7 +4,7 @@
 **Stakeholder:** Bart / ZetesConfidens Trust Services  
 **Single source of truth:** Bart’s briefing (see §1)  
 **Status:** Draft — detailed plan with time estimates, risks, resource ordering and automation  
-**Target:** Red Hat Linux (company standard) or RHEL derivative; VM or Podman
+**Target:** RHEL 9 (company standard); VM or Podman
 
 > **Note on naming:** This plan covers the **Trusted List Manager** (web app for browsing, editing, monitoring Trusted Lists), not a “generator”. The EU also provides a separate **Trusted List Signing Tool** (local signing); that is secondary in scope.
 
@@ -37,7 +37,7 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 **TASK:**  
 - Try to **install it and get it to a working setup**.  
 - Either as a **VM** or a **Podman** container.  
-- Best with **Red Hat Linux** (company standard) or an **RHEL derivative**.  
+- Best with **RHEL 9** (company standard).  
 - **Evaluate how complex it is to make it production ready.**
 
 ---
@@ -51,14 +51,15 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 - **Service manual (PDF):** EC link below; **local copy:** `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf`  
   https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/42358785/Trusted+List+Manager?preview=/42358785/52598139/TL-Manager(ServiceOfferingDescription)%20(v0.03).pdf  
   *(This SOD describes purpose, users, roles, access process; it does not specify OS or runtime stack — see §5 for stack from deployment package/other EC docs.)*  
-- **Source and deployment package (non-EU v6.0):**  
-  https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/920062707/TL+manager+non-EU+v6.0  
-- **Nexus (requires login; source/zip listed, download may be restricted):**  
+- **Source and deployment package (non-EU v6.x):**  
+  - **Internal ZIP on hand:** v6.4 (from Aldo).  
+  - Public page: https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/920062707/TL+manager+non-EU+v6.0  
+- **Nexus (login may be required for downloads; TL Manager ZIP already available internally):**  
   - Browse: `https://ec.europa.eu/digital-building-blocks/artifact/#browse/browse:esignaturetlm:eu%2Feuropa%2Fec%2Fcef%2Fesignature%2FTL-NEU%2F6.0`  
-  - ZIP: `.../TL-NEU-6.0.ZIP`
+  - ZIP: `.../TL-NEU-6.0.ZIP` (if needed)
 
 **Signing options:**  
-- **NexU** (Nowina) — local signature device: https://lab.nowina.solutions/nexu-demo/download-nexu (compatible with Estonian eID card; good for hardware interop test; may not produce a TL that validates unless CA certs are added to the TL Manager trust store).  
+- **NexU** (Nowina) — local signature device: https://lab.nowina.solutions/nexu-demo/download-nexu (use with eIDAS USB tokens from QSCD.eu; e.g. Gemalto SafeNet eToken 5110 CC (940); good for hardware interop test; may not produce a TL that validates unless CA certs are added to the TL Manager trust store).  
 - **Trusted List Signing Tool** (local) — sign TLs locally, then upload/download (un)signed XML via the Manager:  
   https://ec.europa.eu/digital-building-blocks/artifact/#browse/browse:esignaturetlm:eu%2Feuropa%2Fec%2Fcef%2Fesignature%2FTLSigning%2F2.1  
 
@@ -67,7 +68,7 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 - **What:** Small local digital signing software; creates **XAdES** signatures compliant with **ETSI TS 119 612 v2.1.1 to v2.4.1**; detects trusted list version and signs accordingly.  
 - **Page:** https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/924976410/Trusted+List+Signing+Tool  
 - **Version:** v2.1 (04/2025), compliant with TL v6 specification.  
-- **Download:** Repository managed by Nexus for the EC; **requires an account** (Bart did not find how to obtain one).  
+- **Download:** Repository managed by Nexus/DBB for the EC; **requires an account** (still pending; **only needed for the TL Signing Tool**).  
 - **Source and build instructions:**  
   https://ec.europa.eu/digital-building-blocks/artifact/#browse/browse:esignaturetlm:eu%2Feuropa%2Fec%2Fcef%2Fesignature%2FTLSigning  
 
@@ -77,9 +78,10 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 
 | Item | Status | Action |
 |------|--------|--------|
-| **Nexus / DBB account** | Blocker for direct ZIP/source download | Request access via EC Digital Building Blocks or TLSO contact; document fallback if package is shared internally. |
-| **Red Hat / RHEL derivative VM or host** | Required | Provision Rocky Linux 9, AlmaLinux 9, or RHEL 9 (company standard). See §4. |
-| **Podman (optional)** | Preferred for reproducibility | Install Podman on RHEL derivative. |
+| **TL Manager ZIP (non-EU v6.4)** | Available | Received from Aldo; store securely and checksum. |
+| **Nexus / DBB account (TL Signing Tool only)** | Blocker only if Signing Tool is required | Request access via EC Digital Building Blocks or TLSO contact. |
+| **RHEL 9 VM or host** | Available | VM already provisioned (Aldo). See §4 for fallback request. |
+| **Podman (optional)** | Preferred for reproducibility | Install Podman on RHEL 9 if containerized. |
 | **Network** | Lab/internal | Ensure host can reach EC URLs for docs; no public exposure of the app until approved. |
 
 ---
@@ -90,17 +92,17 @@ Order these **in parallel** where possible to avoid idle time. Lead times are ty
 
 | Resource | Spec / details | Who to request | Lead time (estimate) | Checklist |
 |----------|----------------|----------------|------------------------|-----------|
-| **VM (lab)** | 2 vCPU, 4 GB RAM, 20 GB disk; Rocky Linux 9 or AlmaLinux 9 or RHEL 9; internal/lab network | IT / infra team or cloud portal | 3–10 days | [ ] Request form submitted; [ ] OS template chosen; [ ] Hostname reserved (e.g. `tl-manager-lab.internal`); [ ] SSH key or VPN access confirmed |
-| **Nexus / DBB account** | Access to EC Digital Building Blocks artifact repository (TL-NEU-6.0.ZIP, TL Signing) | EC TLSO or DBB contact; or internal (if ZetesConfidens has a shared account) | 1–4 weeks | [ ] Contact identified; [ ] Request sent; [ ] Credentials received and stored in vault |
+| **VM (lab)** | 2 vCPU, 4 GB RAM, 20 GB disk; **RHEL 9**; internal/lab network (VM already available from Aldo) | IT / infra team or cloud portal | 0–10 days | [ ] Request form submitted (if needed); [ ] OS template chosen; [ ] Hostname reserved (e.g. `tl-manager-lab.internal`); [ ] SSH key or VPN access confirmed |
+| **Nexus / DBB account (TL Signing Tool only)** | Access to EC Digital Building Blocks artifact repository (TL Signing Tool) | EC TLSO or DBB contact; or internal (if ZetesConfidens has a shared account) | 1–4 weeks | [ ] Contact identified; [ ] Request sent; [ ] Credentials received and stored in vault |
 | **Internal DNS (optional)** | A record for `tl-manager-lab.internal` (and e.g. `cas-lab.internal` if CAS on same host) | Network / DNS team | 1–3 days | [ ] Hostname(s) requested; [ ] Record created |
 | **SSL certificate (later)** | For production-like HTTPS (internal CA or public); not required for initial lab | PKI / security team | 1–2 weeks when needed | [ ] Deferred until after PoC |
 | **Backup storage (later)** | Quota for DB + config backups if moving to production-like | IT / backup team | 1–2 weeks when needed | [ ] Deferred until after PoC |
-| **Estonian eID / NexU (optional)** | For signing interop test; local workstation | N/A (download NexU, use existing eID) | 0.5 day | [ ] NexU installed; [ ] eID driver and reader working |
+| **eIDAS USB tokens (QSCD.eu, CC-certified)** | 6 units; e.g. Gemalto SafeNet eToken 5110 CC (940) | **Riho** / procurement | 1–3 weeks | [ ] Order placed; [ ] Delivery confirmed; [ ] Tokens inventoried |
 
 **Concrete VM request text (copy-paste friendly):**
 
 - **Purpose:** Lab deployment of EU Trusted List Manager (non-EU v6) for evaluation.  
-- **OS:** Rocky Linux 9 (or AlmaLinux 9 / RHEL 9).  
+- **OS:** RHEL 9.  
 - **Sizing:** 2 vCPU, 4 GB RAM, 20 GB disk.  
 - **Network:** Internal/lab only; outbound HTTPS for EC documentation.  
 - **Access:** SSH (key-based); no public inbound except SSH if required.  
@@ -116,8 +118,8 @@ Order these **in parallel** where possible to avoid idle time. Lead times are ty
 - MySQL **8.0.41**  
 - Linux (Debian 12)
 
-**Target for this plan (RHEL derivative):**  
-- **OS:** Rocky Linux 9 / AlmaLinux 9 / RHEL 9  
+**Target for this plan (RHEL 9):**  
+- **OS:** RHEL 9  
 - **Java:** OpenJDK 8 (match application requirement; use `java-1.8.0-openjdk` on RHEL)  
 - **App server:** Apache Tomcat 9.0.x (align with 9.0.102 if possible)  
 - **Database:** MySQL 8.0.x (or MariaDB 10.6+ if compatible per manual)  
@@ -136,17 +138,17 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 | Phase | Description | Est. time (days) | Est. hours | Notes |
 |-------|-------------|------------------|------------|--------|
-| **0** | Unblock: obtain TL Manager package (Nexus/DBB or internal) | 1–3 d | 2–4 h active | Depends on EC/DBB response; submit request early. |
+| **0** | Confirm TL Manager ZIP (v6.4) on hand; request Nexus/DBB only if TL Signing Tool needed | 0.5 d | 1–2 h active | ZIP already available from Aldo; account only for Signing Tool. |
 | **1** | Provision base VM; OS hardening; SSH; firewall; base packages | 0.5 d | 2–4 h | Can be automated (Ansible/IaC). VM lead time separate. |
 | **2** | Install OpenJDK 8, Tomcat 9, MySQL 8 (or MariaDB) on host or containers | 0.5–1 d | 4–6 h | Package manager + config or Podman Compose. |
 | **3** | Deploy and configure CAS (minimal config for TL Manager) | 1–2 d | 6–12 h | CAS is feature-rich; minimal setup for one service. |
 | **4** | Deploy TL Manager WAR; configure DB, CAS URL, app props | 1 d | 4–6 h | Follow EC service manual. |
 | **5** | Smoke test: login via CAS, open UI, create/edit test TL | 0.5 d | 2–4 h | Validates end-to-end. |
-| **6** | Optional: NexU + Estonian eID signing interop test | 0.5 d | 2–4 h | Hardware interop only. |
+| **6** | Optional: NexU + eIDAS USB token signing interop test | 0.5 d | 2–4 h | Hardware interop only. |
 | **7** | Document steps; production-readiness evaluation (§11) | 0.5 d | 2–4 h | Written report + checklist. |
-| **Total (hands-on)** | | **~5–8 d** | **~24–44 h** | Excluding VM and Nexus lead time. |
+| **Total (hands-on)** | | **~5–8 d** | **~24–44 h** | Excluding VM lead time (already available) and any Nexus lead time if TL Signing Tool is required. |
 
-**Calendar view:** With VM lead time 5–10 days and Nexus 1–4 weeks, plan for **2–5 weeks** from first request to working lab (assuming package received within that window).
+**Calendar view:** With VM and TL Manager ZIP already available, plan for **~1–2 weeks** to a working lab. If the TL Signing Tool is required, add Nexus lead time (1–4 weeks).
 
 ---
 
@@ -154,12 +156,12 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| Nexus/DBB account never granted or delayed | Medium | Blocker | Request early; ask Bart/internal for shared package or alternate source; document “no binary” path (build from source if published). |
+| Nexus/DBB account for TL Signing Tool never granted or delayed | Medium | Low–Medium | Proceed with TL Manager; request early if Signing Tool is needed; document fallback. |
 | TL Manager not compatible with RHEL/MySQL 8 / Tomcat 9.0.x | Low–Medium | High | Stick to documented versions; test on Debian 12 in a container first if issues arise. |
 | CAS setup more complex than expected | Medium | Medium | Allocate 2 days for CAS; use minimal overlay or prebuilt CAS Docker image; consider “static user list” only for lab. |
 | OpenJDK 8 EOL / security | High (fact) | Medium long-term | For PoC acceptable; for production document upgrade path (e.g. TL Manager on newer Java if EC releases) or isolation. |
 | EC discontinues non-EU TL Manager | Low (short term) | High | Monitor EC announcements; non-EU still supported; plan migration to eIDAS Dashboard or other if EC policy changes. |
-| VM or network not ready on time | Medium | Schedule slip | Order VM and Nexus in parallel; use local Podman on laptop as fallback for stack bring-up. |
+| VM or network not ready on time | Low–Medium | Schedule slip | VM already available; validate network access early; use local Podman on laptop as fallback. |
 | No TLS in lab | Low | Low | Acceptable for internal lab; document TLS as production requirement. |
 | Database or config loss | Low | Medium | Document backup procedure in runbook; implement once moving to production-like. |
 
@@ -169,14 +171,14 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ## Phase 0 — Unblock package access
 
-- [ ] Request Nexus / Digital Building Blocks account or access to TL Manager non-EU v6.0 package (ZIP or WAR).
-- [ ] If no account: check whether ZetesConfidens or EC contact can provide `TL-NEU-6.0.ZIP` (or equivalent) internally.
-- [ ] Download and store the package in a secure project location; verify it contains WAR and/or deployment instructions.
+- [ ] Confirm TL Manager ZIP (v6.4) received from Aldo; store in a secure project location and verify it contains WAR and/or deployment instructions.
 - [ ] Record where the package is stored and checksum (e.g. SHA-256) for reproducibility.
+- [ ] If the TL Signing Tool is in scope: request Nexus / Digital Building Blocks account.
+- [ ] Once account is granted, download the TL Signing Tool package and record checksum.
 
 ## Phase 1 — Base VM / host
 
-- [ ] **Order VM** (see §4): 2 vCPU, 4 GB RAM, 20 GB disk; Rocky Linux 9 (or AlmaLinux 9 / RHEL 9).
+- [ ] **Confirm VM** (see §4): RHEL 9; use Aldo’s VM or order 2 vCPU, 4 GB RAM, 20 GB disk if needed.
 - [ ] Set hostname (e.g. `tl-manager-lab.internal`).
 - [ ] Configure firewall: allow SSH (22), HTTP/HTTPS (80/443) for Tomcat if needed; block everything else from outside.
 - [ ] Install base packages: `podman` (if using containers), `git`, `curl`, `wget`, `vim`.
@@ -224,7 +226,7 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ## Phase 6 — Optional signing
 
-- [ ] Install NexU (or TL Signing Tool if available) on a workstation; configure Estonian eID if applicable.
+- [ ] Install NexU (or TL Signing Tool if available) on a workstation; use CC-certified eIDAS USB tokens (QSCD.eu, e.g. Gemalto SafeNet eToken 5110 CC (940)).
 - [ ] In TL Manager, test “sign with local device” or “upload signed XML” flow; document result (e.g. “signed but not validated” without CA in trust store).
 
 ## Phase 7 — Documentation and evaluation
@@ -251,13 +253,13 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 # 10. LLM-readable prompts
 
-Use these as-is for an LLM or assistant to generate scripts, configs, or commands. Assume Red Hat / Rocky Linux 9 unless stated.
+Use these as-is for an LLM or assistant to generate scripts, configs, or commands. Assume RHEL 9 unless stated.
 
 **Prompt 1 — Base server**  
-“Generate an Ansible playbook for Rocky Linux 9 that: sets hostname to tl-manager-lab; installs podman, git, curl, wget, java-1.8.0-openjdk, and firewalld; opens SSH (22) and HTTP (80) and HTTPS (443); creates a user ‘tomcat’ with no login shell. Use only dnf and standard modules.”
+“Generate an Ansible playbook for RHEL 9 that: sets hostname to tl-manager-lab; installs podman, git, curl, wget, java-1.8.0-openjdk, and firewalld; opens SSH (22) and HTTP (80) and HTTPS (443); creates a user ‘tomcat’ with no login shell. Use only dnf and standard modules.”
 
 **Prompt 2 — Tomcat and MySQL on host**  
-“Generate Ansible tasks for Rocky Linux 9: install Apache Tomcat 9.0.102 from tarball into /opt/tomcat, run as user tomcat, listen on 8080; install MySQL 8 server, create database ‘tlmanager’ and user ‘tlmanager’ with a password from variable; add MySQL connector JAR to Tomcat lib. Output tasks only, no playbook wrapper.”
+“Generate Ansible tasks for RHEL 9: install Apache Tomcat 9.0.102 from tarball into /opt/tomcat, run as user tomcat, listen on 8080; install MySQL 8 server, create database ‘tlmanager’ and user ‘tlmanager’ with a password from variable; add MySQL connector JAR to Tomcat lib. Output tasks only, no playbook wrapper.”
 
 **Prompt 3 — Podman stack**  
 “Write a podman-compose.yml or shell script that: runs MySQL 8 container with a named volume and env MYSQL_DATABASE=tlmanager, MYSQL_USER and MYSQL_PASSWORD; runs a Tomcat 9 container with OpenJDK 8, mounting a host directory for webapps so we can drop a WAR. Expose Tomcat on host 8080. Include a short README with start/stop commands.”
@@ -283,6 +285,7 @@ After the working setup is in place, fill this table and add a short narrative f
 | Dependency lifecycle | | OpenJDK 8 EOL; Tomcat 9; MySQL 8 maintenance. |
 | CAS hardening | | Real IdP, TLS, MFA? |
 | Backup and restore | | DB + config + WAR. |
+| Desktop study: Azure/AWS for production readiness | | Would managed backups/HA reduce effort? |
 | Monitoring and logging | | App logs, access logs, audit trail. |
 | Security updates | | Who tracks CVEs for Tomcat/MySQL/Java? |
 | Documentation and handover | | Runbook, credentials store. |
@@ -311,11 +314,12 @@ After the working setup is in place, fill this table and add a short narrative f
   https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/42358785/Trusted+List+Manager?preview=/42358785/52598139/TL-Manager(ServiceOfferingDescription)%20(v0.03).pdf  
 - **eIDAS Dashboard (EU replacement):** https://eidas.ec.europa.eu/efda/home  
 - **NexU (Nowina):** https://lab.nowina.solutions/nexu-demo/download-nexu  
+- **QSCD.eu (eIDAS USB tokens, CC-certified):** https://qscd.eu/  
 - **Trusted List Signing Tool:**  
   https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/924976410/Trusted+List+Signing+Tool  
 - **Apereo CAS:** https://github.com/apereo/cas  
 
 ---
 
-**Document version:** Draft v3 — resource ordering, risks, finer estimates, forward-looking section.  
+**Document version:** Draft v4 — updated per Bart (RHEL 9, package availability, signing-tool account, hardware tokens, cloud eval criterion).  
 **Comments welcome.**
