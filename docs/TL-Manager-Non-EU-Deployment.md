@@ -40,9 +40,17 @@ So we both align with the official deployment structure and fill the missing key
 
 ## What Ansible does automatically (no manual steps)
 
-Running `ansible-playbook -i inventory playbooks/03-tlmanager.yml` (or `site.yml`) performs the following **without manual intervention**:
+Running `ansible-playbook -i inventory playbooks/site.yml` (or `03-tlmanager.yml` for TL Manager only, or `04-cas.yml` for CAS only) performs the following **without manual intervention**:
 
-### Application deployment
+### Phase 3 — CAS (optional, before or with TL Manager)
+
+- Resolves **CAS WAR** from `packages/cas-server-webapp-4.0.0.war` or extracts it from `packages/TL-NEU-6.0.ZIP` on the controller.
+- Copies the WAR to Tomcat `webapps/` as `cas-server-webapp-4.0.0.war` (context path `/cas-server-webapp-4.0.0`).
+- Notifies Tomcat to restart so the CAS application is loaded.
+
+Variables: `cas_webapp_context` (default `cas-server-webapp-4.0.0`), optional `cas_war_path` to point to the WAR file on the controller.
+
+### Phase 4 — Application deployment (TL Manager)
 
 - Creates **Tomcat lib** and **tlmanager-non-eu-config** directories (as in the official guide §2.4) and deploys **application-tlmanager-non-eu-custom.properties** into Tomcat **lib** (JDBC, CAS placeholders, and **signer keystore** settings — the latter not mentioned in the guide).
 - Resolves the WAR from `packages/` (e.g. `tl-manager-non-eu.war` or from `TL-NEU-6.0.ZIP`).
@@ -85,6 +93,12 @@ So you do **not** need to run keytool or edit properties by hand for a lab run. 
 | `tlmanager_signer_keystore_path` | `/opt/tomcat/conf/tlmanager-signer.jks` | Path to signer JKS. |
 | `tlmanager_signer_keystore_password` | `changeit` | Keystore (and key) password. |
 | `tlmanager_signer_keystore_create` | `true` | Create minimal JKS if missing. |
+| `cas_webapp_context` | `cas-server-webapp-4.0.0` | CAS context path (URL: `/cas-server-webapp-4.0.0/`). |
+| `cas_war_path` | (none) | Path to CAS WAR on controller; if unset, role uses `packages/cas-server-webapp-4.0.0.war` or extracts from `packages/TL-NEU-6.0.ZIP`. |
+| `tomcat_https_enabled` | `false` | Enable HTTPS connector and generate a JKS keystore. |
+| `tomcat_https_port` | `8443` | HTTPS port for Tomcat. |
+| `tomcat_https_keystore_path` | `/opt/tomcat/conf/tomcat.jks` | Keystore path used by HTTPS connector. |
+| `tomcat_https_keystore_password` | `changeit` | Keystore password for HTTPS connector. |
 
 Credentials for DB and app are taken from `ansible/group_vars/tlmanager/deployment-passwords.yml` (see [Ansible README](../ansible/README.md)).
 
@@ -93,8 +107,59 @@ Credentials for DB and app are taken from `ansible/group_vars/tlmanager/deployme
 ## After deployment
 
 - **URL:** `http://<host>:8080/tl-manager-non-eu/` (with trailing slash). Via SSH tunnel use `-L 8080:localhost:8080` so redirects work.
-- **CAS:** Not installed by these playbooks; configure separately and set CAS URLs in app config if required.
+- **CAS:** Deployed by playbook `04-cas.yml` (or `site.yml`) at `http://<host>:8080/cas-server-webapp-4.0.0/`. Set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` in app config to match your access (see Troubleshooting — 404 on `/login`). **CAS login (Apereo CAS 4 default):** username **casuser**, password **Mellon** — change for production.
 - **Signing:** The auto-created keystore is for lab (UI starts). Use a real keystore or QSCD for actual signing.
+
+---
+## HTTPS requirement for CAS (SSO)
+
+CAS warns if you access it over HTTP: **SSO requires HTTPS** so the CAS ticket-granting cookie (TGC) can be set with the `Secure` flag. Without HTTPS, login may appear to work but **SSO will not**.
+
+Minimal lab setup:
+
+1. Create a Tomcat keystore (self-signed is fine for lab).
+2. Add an HTTPS connector in Tomcat (e.g. port 8443).
+3. Access CAS and TL Manager via `https://` and update `tlmanager_cas_server_url` / `tlmanager_cas_service_url` accordingly.
+
+**Automated with Ansible (recommended):**
+
+- Set `tomcat_https_enabled: true` in `ansible/group_vars/tlmanager/` or inventory.
+- Optionally override:
+  - `tomcat_https_port` (default `8443`)
+  - `tomcat_https_keystore_path` (default `/opt/tomcat/conf/tomcat.jks`)
+  - `tomcat_https_keystore_password` / `tomcat_https_key_password`
+  - `tomcat_https_dname` and `tomcat_https_key_alias`
+- Re-run `ansible-playbook -i inventory playbooks/02-runtime.yml` (or `site.yml`) and then update `tlmanager_cas_server_url` / `tlmanager_cas_service_url` to HTTPS URLs.
+
+For production, use a real certificate from your PKI or ACME and enforce HTTPS only.
+
+---
+## Production checklist (minimal)
+
+**Security and TLS**
+- Terminate TLS for Tomcat and CAS (8443 or via reverse proxy).
+- Replace default CAS credentials and configure real IdP (LDAP/OIDC/SAML).
+- Use strong passwords and store secrets in vault (no plaintext in `group_vars`).
+- Harden firewall rules; restrict MySQL to localhost.
+
+**Certificates and hostnames**
+- Use stable DNS names (e.g. `tl-manager.prod.example`, `cas.prod.example`).
+- Issue certificates and configure TLS for both CAS and TL Manager URLs.
+
+**CAS configuration**
+- Define allowed services (TL Manager callback URL).
+- Configure authentication sources (LDAP/OIDC) and roles as required.
+- Validate CAS login over HTTPS and verify SSO behavior.
+
+**Application config**
+- Set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` to HTTPS endpoints.
+- Provide production JDBC credentials and lock down DB access.
+- Replace signer keystore with production QSCD or approved signing keys.
+
+**Operational**
+- Enable backups for MySQL and key material (JKS/QSCD).
+- Configure log retention and monitoring for Tomcat and CAS.
+- Document runbooks and recovery steps.
 
 ---
 
@@ -155,13 +220,13 @@ If the tunnel uses a different local port than 8080, the app may redirect to por
 
 Then Tomcat returns **404 – The requested resource [/login] is not available**.
 
-**Cause:** TL Manager uses **Spring Security with CAS** (Central Authentication Service). Unauthenticated users are sent to the CAS server’s **login page**. That login page is **not** part of TL Manager — it is served by a separate **CAS** webapp (e.g. Apereo CAS). The playbooks **do not deploy CAS** (see [Deployment Plan](EU-Trusted-List-Manager-Deployment-Plan.md) Phase 3). So there is no application at `/login` on your Tomcat → 404.
+**Cause:** TL Manager uses **Spring Security with CAS** (Central Authentication Service). Unauthenticated users are sent to the CAS server’s **login page**. That login page is **not** part of TL Manager — it is served by a separate **CAS** webapp (e.g. Apereo CAS). If CAS is not deployed (or deployed on a different URL than configured), there is no application at `/login` on your Tomcat → 404.
 
 **What to do:**
 
 1. **Deploy CAS** (recommended for real use)  
-   - Deploy Apereo CAS (or the CAS WAR from the EC package, if provided) on the **same** Tomcat or on another host.  
-   - Typical context for CAS: e.g. `/cas` or `/cas-server-webapp-4.0.0`, so the login URL is `http://<host>:<port>/cas-server-webapp-4.0.0/login`.  
+   - Run the CAS playbook: `ansible-playbook -i inventory ansible/playbooks/04-cas.yml` (or use `site.yml`, which includes Phase 3). This deploys the CAS WAR from the EC package to the same Tomcat.  
+   - Context path: `/cas-server-webapp-4.0.0`, so the login URL is `http://<host>:<port>/cas-server-webapp-4.0.0/login`.  
    - Configure TL Manager so it points to that URL via `casServerUrl` and `casServiceUrl` (see below).
 
 2. **Set CAS URLs to match how you access the app**  

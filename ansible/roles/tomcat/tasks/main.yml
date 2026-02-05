@@ -29,6 +29,48 @@
     group: "{{ tomcat_group }}"
     recurse: true
 
+- name: Create Tomcat HTTPS keystore (optional)
+  ansible.builtin.command:
+    cmd: >-
+      keytool -genkeypair
+      -alias {{ tomcat_https_key_alias }}
+      -keyalg RSA
+      -keysize 2048
+      -storetype {{ tomcat_https_keystore_type }}
+      -keystore {{ tomcat_https_keystore_path }}
+      -validity 3650
+      -storepass {{ tomcat_https_keystore_password }}
+      -keypass {{ tomcat_https_key_password }}
+      -dname "{{ tomcat_https_dname }}"
+  args:
+    creates: "{{ tomcat_https_keystore_path }}"
+  when: tomcat_https_enabled and tomcat_https_generate_keystore
+
+- name: Set HTTPS keystore ownership and permissions
+  ansible.builtin.file:
+    path: "{{ tomcat_https_keystore_path }}"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: "0640"
+  when: tomcat_https_enabled
+
+- name: Enable HTTPS connector in Tomcat server.xml
+  ansible.builtin.blockinfile:
+    path: "{{ tomcat_install_dir }}/conf/server.xml"
+    marker: "<!-- {mark} ANSIBLE TOMCAT HTTPS -->"
+    insertafter: "^\\s*<Connector port=\""
+    block: |
+      <Connector port="{{ tomcat_https_port }}" protocol="org.apache.coyote.http11.Http11NioProtocol"
+                 maxThreads="150" SSLEnabled="true" scheme="https" secure="true">
+        <SSLHostConfig>
+          <Certificate certificateKeystoreFile="{{ tomcat_https_keystore_path }}"
+                       certificateKeystorePassword="{{ tomcat_https_keystore_password }}"
+                       type="RSA" />
+        </SSLHostConfig>
+      </Connector>
+  when: tomcat_https_enabled
+  notify: Restart Tomcat
+
 - name: Install MySQL connector JAR into Tomcat lib
   ansible.builtin.dnf:
     name: mysql-connector-java

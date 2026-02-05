@@ -1,6 +1,6 @@
 # Ansible — TL Manager deployment
 
-Automates **Phase 1** (base server), **Phase 2** (Tomcat 9 + MySQL 8), and **Phase 4** (TL Manager WAR + config) from the [deployment plan](../docs/EU-Trusted-List-Manager-Deployment-Plan.md).
+Automates **Phase 1** (base server), **Phase 2** (Tomcat 9 + MySQL 8), **Phase 3** (CAS WAR), and **Phase 4** (TL Manager WAR + config) from the [deployment plan](../docs/EU-Trusted-List-Manager-Deployment-Plan.md).
 
 ## Requirements
 
@@ -20,10 +20,11 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
   - **base_server** — hostname, firewalld, packages (Java 8, git, curl, …), `tomcat` user
   - **tomcat** — Apache Tomcat 9.0.x from tarball, systemd service, MySQL connector JAR
   - **mysql** — MySQL 8 server, database `tlmanager`, user `tlmanager`
+  - **cas** — deploy CAS WAR from `packages/` or from `TL-NEU-6.0.ZIP` to Tomcat `webapps/`
   - **tlmanager** — deploy WAR (expanded), `context.xml` (JDBC), `proxy.properties`, patch `application.properties` (JDBC, proxy.*, signer/keystore, hibernate), **create signer keystore** (directory + keytool JKS + ownership), MySQL connector in `WEB-INF/lib`; verifies context startup from catalina.out. See [../docs/TL-Manager-Non-EU-Deployment.md](../docs/TL-Manager-Non-EU-Deployment.md).
 - **playbooks/**
-  - **site.yml** — full run (base → mysql+tomcat → tlmanager)
-  - **01-base.yml**, **02-runtime.yml**, **03-tlmanager.yml** — run phases separately
+  - **site.yml** — full run (base → mysql+tomcat → cas → tlmanager)
+  - **01-base.yml**, **02-runtime.yml**, **04-cas.yml**, **03-tlmanager.yml** — run phases separately
 - **inventory.example** — copy to `inventory` and set host, user
 - **group_vars/tlmanager/deployment-passwords.yml** — DB usernames and plain-English passwords for PoC; loaded automatically for `[tlmanager]` hosts so you can run without `-e`
 - **.env.example** (repo root) — same passwords in KEY=VALUE form for reference; Ansible does not read `.env`
@@ -50,6 +51,7 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
    cd ansible
    ansible-playbook -i inventory playbooks/01-base.yml
    ansible-playbook -i inventory playbooks/02-runtime.yml
+   ansible-playbook -i inventory playbooks/04-cas.yml
    ansible-playbook -i inventory playbooks/03-tlmanager.yml
    ```
    To fix “Access denied” for user `tlmanager`: re-run so MySQL and the app get the same password from group_vars:
@@ -59,7 +61,8 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
    ```
 
 5. **After run:** Tomcat listens on port **8080**. Open `http://<your-vm>:8080/` (or the context you set).  
-   **CAS** is not installed by these playbooks; add Phase 3 (CAS) manually or a separate role, then set `tlmanager_cas_server_url` and `tlmanager_cas_service_url`.
+   **CAS** is deployed by **04-cas.yml** (or `site.yml`) at `/cas-server-webapp-4.0.0/`; set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` to match your access (see [TL-Manager-Non-EU-Deployment.md](../docs/TL-Manager-Non-EU-Deployment.md)).  
+   **HTTPS:** CAS SSO requires HTTPS; access CAS and TL Manager over `https://` and configure the URLs accordingly.
 
 ## Variables (main)
 
@@ -121,3 +124,4 @@ For PoC, passwords live in `group_vars/tlmanager/deployment-passwords.yml` (plai
 
 - **base_install_podman** (default: false) — set to `true` in inventory or vars to install Podman on the host.
 - **CAS:** After deploying a minimal Apereo CAS (Phase 3), set `tlmanager_cas_server_url` and `tlmanager_cas_service_url`; the current `context.xml` only configures JDBC; CAS is often configured in the app’s own properties.
+- **HTTPS (Tomcat):** set `tomcat_https_enabled: true` to generate a self-signed JKS and add an HTTPS connector (defaults to `8443`). Override `tomcat_https_keystore_path`, `tomcat_https_keystore_password`, `tomcat_https_key_password`, `tomcat_https_dname`, and `tomcat_https_key_alias` as needed. Re-run `02-runtime.yml`.

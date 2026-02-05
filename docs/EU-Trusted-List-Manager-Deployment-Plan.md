@@ -8,7 +8,7 @@
 
 > **Note on naming:** This plan covers the **Trusted List Manager** (web app for browsing, editing, monitoring Trusted Lists), not a “generator”. The EU also provides a separate **Trusted List Signing Tool** (local signing); that is secondary in scope.
 
-**Current status:** Phases **0, 1, 2 (Option A), and 4** are done: TL Manager package in `packages/`, base VM + Tomcat + MySQL automated, TL Manager WAR deployed and starting (signer keystore configured). **Next step: Phase 3 (CAS)** — without CAS, the app redirects to `/login` and returns 404. After CAS is deployed and URLs configured, Phase 5 (validation) can follow.
+**Current status:** Phases **0, 1, 2 (Option A), and 4** are done; **Phase 3 (CAS) is in progress**. CAS WAR is deployed on Tomcat; remaining: configure CAS service/auth, set `tlmanager_cas_server_url` / `tlmanager_cas_service_url`, and validate login. After CAS is configured and URLs set, Phase 5 (validation) can follow.
 
 ---
 
@@ -206,9 +206,9 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 - [ ] Create MySQL database and user inside MySQL container (init script or manual run).
 - [ ] Expose Tomcat port (e.g. 8080) on host.
 
-## Phase 3 — CAS **(next step)**
+## Phase 3 — CAS **(in progress)**
 
-- [ ] Deploy Apereo CAS (e.g. overlay from https://github.com/apereo/cas) as a separate WAR or use a minimal CAS Docker image.
+- [x] Deploy Apereo CAS (e.g. overlay from https://github.com/apereo/cas) as a separate WAR or use a minimal CAS Docker image. **Done via Ansible (`04-cas.yml`, CAS WAR from EC package).**
 - [ ] Configure CAS to allow one service (TL Manager callback URL); minimal auth (e.g. static user list or LDAP if available).
 - [ ] Note CAS login URL and service URL; set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` (e.g. in `group_vars/tlmanager/`), then re-run the tlmanager playbook so `application-tlmanager-non-eu-custom.properties` is updated.
 - [ ] Test CAS login in browser; then open TL Manager and complete login (Phase 5).

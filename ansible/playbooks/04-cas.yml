@@ -1,0 +1,7 @@
+---
+# Phase 3 — deploy CAS WAR (from packages/ or TL-NEU-6.0.ZIP) to same Tomcat as TL Manager
+- name: CAS deployment
+  hosts: tlmanager
+  become: true
+  roles:
+    - cas

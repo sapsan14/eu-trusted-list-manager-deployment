@@ -1,0 +1,5 @@
+---
+# CAS server from EC TL Manager package (official guide §2.5: cas-server-webapp-4.0.0.war)
+# Deploy to same Tomcat as TL Manager so login works.
+cas_webapp_context: "cas-server-webapp-4.0.0"   # URL path /cas-server-webapp-4.0.0
+# Path to CAS WAR on controller: set cas_war_path or put in packages/ (or extract from TL-NEU-6.0.ZIP)

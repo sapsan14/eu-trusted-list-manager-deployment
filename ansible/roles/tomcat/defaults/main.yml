@@ -8,3 +8,14 @@ tomcat_group: tomcat
 tomcat_connector_port: 8080
 # Optional: 8443 for HTTPS
 tomcat_connector_redirect_port: 8443
+
+# HTTPS (optional, required for CAS SSO)
+tomcat_https_enabled: false
+tomcat_https_port: 8443
+tomcat_https_keystore_path: /opt/tomcat/conf/tomcat.jks
+tomcat_https_keystore_password: changeit
+tomcat_https_key_password: changeit
+tomcat_https_keystore_type: JKS
+tomcat_https_key_alias: tomcat
+tomcat_https_dname: "CN=tl-manager-lab.internal, OU=Lab, O=Lab, L=Lab, ST=Lab, C=EU"
+tomcat_https_generate_keystore: true

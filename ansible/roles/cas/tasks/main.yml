@@ -1,0 +1,56 @@
+---
+# Phase 3 — Deploy CAS from EC TL Manager package (official guide §2.5: copy cas-server-webapp-4.0.0.war to webapps)
+- name: Set packages dir (project root)
+  ansible.builtin.set_fact:
+    _packages_dir: "{{ (playbook_dir | dirname | dirname) ~ '/packages' }}"
+
+- name: Find CAS WAR in packages (on controller)
+  ansible.builtin.find:
+    paths: "{{ _packages_dir }}"
+    patterns: "cas-server-webapp-4.0.0.war"
+  register: _cas_find
+  delegate_to: localhost
+  run_once: true
+  become: false
+  ignore_errors: true
+
+- name: Extract CAS WAR from TL-NEU ZIP on controller when not in packages
+  ansible.builtin.command:
+    cmd: unzip -j -o "{{ _packages_dir }}/TL-NEU-6.0.ZIP" "*/cas-server-webapp-4.0.0.war" -d "{{ _packages_dir }}"
+  args:
+    creates: "{{ _packages_dir }}/cas-server-webapp-4.0.0.war"
+  delegate_to: localhost
+  run_once: true
+  become: false
+  when: _cas_find.matched is defined and _cas_find.matched == 0
+
+- name: Set CAS WAR path
+  ansible.builtin.set_fact:
+    _cas_war_src: "{{ cas_war_path | default(_packages_dir ~ '/cas-server-webapp-4.0.0.war') }}"
+
+- name: Fail when no CAS WAR found
+  ansible.builtin.fail:
+    msg: "No CAS WAR. Put cas-server-webapp-4.0.0.war in packages/ or TL-NEU-6.0.ZIP there, or set cas_war_path."
+  when: not (_cas_war_src is defined and _cas_war_src | length > 0)
+
+- name: Stat CAS WAR (on controller)
+  ansible.builtin.stat:
+    path: "{{ _cas_war_src }}"
+  register: _cas_war_stat
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: Fail when CAS WAR file missing
+  ansible.builtin.fail:
+    msg: "CAS WAR not found at {{ _cas_war_src }}. Extract from TL-NEU-6.0.ZIP or set cas_war_path."
+  when: not (_cas_war_stat.stat is defined and _cas_war_stat.stat.exists)
+
+- name: Deploy CAS WAR to Tomcat webapps
+  ansible.builtin.copy:
+    src: "{{ _cas_war_src }}"
+    dest: "{{ tomcat_install_dir | default('/opt/tomcat') }}/webapps/{{ cas_webapp_context }}.war"
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0644"
+  notify: Restart Tomcat
