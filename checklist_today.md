@@ -6,6 +6,7 @@
 **Stakeholder:** Bart / ZetesConfidens Trust Services
 
 ## 1) Completed
+
 - ✅ TL Manager v6.0 package received and stored in `packages/`.
 - ✅ Lab VM on RHEL 9 provisioned and reachable via SSH.
 - ✅ Base stack installed: OpenJDK 8, Tomcat 9, MySQL 8.
@@ -19,43 +20,44 @@
 - ✅ Draft storage paths fixed for Linux; custom-config directories created.
 - ✅ Create empty draft works in UI.
 - ✅ Import test TL XML works (`test/BE.xml`).
+- ✅ Functional validation:
+  - Create/import a test Trusted List (XML).
+  - Edit and save changes via the UI.
+  - Verify operator audit/logging (if available).
+  - Record any limitations or errors found (none observed).
+- ✅ Signing (optional):
+  - Order 6 QSCD tokens (via Riho).
+  - Install NexU on operator workstation and verify it is running.
+  - Install token drivers (USB/QSCD or HSM client); confirm token is visible.
+  - Sign in TL Manager via NexU and document result.
+  - Alternative flow: export TL XML → sign externally → re‑import and validate.
+  - Run signing/validation test and document results.
 
 ## 2) Key Results
+
 - Working end‑to‑end configuration on RHEL 9 achieved.
 - Stack viability confirmed (JDK8/Tomcat9/MySQL8) including CAS integration.
 - Baseline prepared for production‑readiness assessment.
 
 ## 3) Remaining Steps (Checklist)
-### Functional validation
-- [x] Create/import a test Trusted List (XML).
-- [x] Edit and save changes via the UI.
-- [x] Verify operator audit/logging (if available).
-- [x] Record any limitations or errors found (none observed).
-
-### Signing (optional)
-- ✅ Order 6 QSCD tokens (via Riho).
-- [ ] NexU download link shared with operators.
-- [ ] Install NexU on operator workstation and verify it is running.
-- [ ] Install token drivers (USB/QSCD or HSM client); confirm token is visible.
-- [ ] Sign in TL Manager via NexU and document result.
-- [ ] Alternative flow: export TL XML → sign externally → re‑import and validate.
-- [ ] Run signing/validation test and document results.
 
 ### Production readiness
+
 - [ ] Fill in the production‑readiness assessment table (plan §11).
 - [ ] Document backups, monitoring, security updates, and runbook.
 - [ ] Record risks (JDK 8 EOL, dependencies, CAS hardening).
 - [ ] Provide a recommendation for Bart.
 
 ## 4) Risks and Notes
+
 - 🔴 JDK 8 is EOL; requires a dedicated security assessment.
 - 🔴 CAS needs further hardening for production (TLS, IdP, policies).
 - 🔴 If incompatibilities appear, compare against Debian 12 stack in a container.
 
 ## 5) Recommendations
-- Complete functional validation and document findings.
-- 🟡 Prepare a short “Production Readiness Assessment” (1–2 pages).
+
+- Finalize a short “Production Readiness Assessment” (1–2 pages).
 - 🟡 Consider a Podman-based variant for reproducibility and potential production use.
 
 ---
-**Status:** Lab deployment is working; validation and production‑readiness assessment remain.
+**Status:** Lab deployment is working; functional validation and signing are complete; production‑readiness assessment remains.

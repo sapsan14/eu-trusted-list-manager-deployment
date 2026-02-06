@@ -33,7 +33,6 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 - **playbooks/**
   - **site.yml** — full run (base → mysql+tomcat → cas → tlmanager)
   - **01-base.yml**, **02-runtime.yml**, **04-cas.yml**, **03-tlmanager.yml** — run phases separately
-  - **06-signing-tools.yml** — install NexU/SoftHSM tooling for lab signing tests
 - **inventory.example** — copy to `inventory` and set host, user
 - **group_vars/tlmanager/deployment-passwords.yml** — DB usernames and plain-English passwords for PoC; loaded automatically for `[tlmanager]` hosts so you can run without `-e`
 - **.env.example** (repo root) — same passwords in KEY=VALUE form for reference; Ansible does not read `.env`
@@ -62,9 +61,6 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
    ansible-playbook -i inventory playbooks/04-cas.yml
    ansible-playbook -i inventory playbooks/03-tlmanager.yml
    ansible-playbook -i inventory playbooks/05-bootstrap-user.yml
-   ansible-playbook -i inventory playbooks/06-signing-tools.yml \
-     -e signing_tools_install_nexu=true \
-     -e nexu_download_url="https://github.com/nowina-solutions/nexu/releases/download/<version>/nexu-<version>.zip"
    ```
    To fix “Access denied” for user `tlmanager`: re-run so MySQL and the app get the same password from group_vars:
    ```bash

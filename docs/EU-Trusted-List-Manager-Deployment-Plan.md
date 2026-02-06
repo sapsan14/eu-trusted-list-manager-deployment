@@ -224,22 +224,22 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 ## Phase 5 — Validation *(after CAS is deployed)*
 
 - [x] Log in to TL Manager via CAS (operator flow). **Done.**
-- [ ] Create or import a minimal test trusted list (XML); edit and save.
-- [ ] Confirm audit/logging of operator actions if the app provides it.
+- [x] Create or import a minimal test trusted list (XML); edit and save. **Done.**
+- [x] Confirm audit/logging of operator actions if the app provides it. **Done.**
 - [x] Document URL, default roles, and limitations found. **Done (see docs).**
 
 ## Phase 6 — Optional signing
 
-- [ ] **eIDAS USB tokens (QSCD):** Ask Riho to order **6 devices**. Use Common Criteria certified QSCD product, e.g. **Gemalto SafeNet eToken 5110 CC (940)** — QSCD.eu.
-- [ ] **NexU (local signing bridge):** install and start NexU on the operator workstation; verify TL Manager detects it.
-- [ ] Install token drivers on workstation (USB/QSCD or HSM client); verify OS sees token.
-- [ ] **Sign in TL Manager via NexU** using USB token (PKCS#11) and document result.
-- [ ] **Alternative flow:** export TL XML, sign with external tool (HSM or local signing app), re‑import into TL Manager; document result.
-- [ ] If using HSM: validate PKCS#11 configuration and signing policy compliance.
+- [x] **eIDAS USB tokens (QSCD):** Ask Riho to order **6 devices**. Use Common Criteria certified QSCD product, e.g. **Gemalto SafeNet eToken 5110 CC (940)** — QSCD.eu.
+- [x] **NexU (local signing bridge):** install and start NexU on the operator workstation; verify TL Manager detects it.
+- [x] Install token drivers on workstation (USB/QSCD or HSM client); verify OS sees token.
+- [x] **Sign in TL Manager via NexU** using USB token (PKCS#11) and document result.
+- [x] **Alternative flow:** export TL XML, sign with external tool (HSM or local signing app), re‑import into TL Manager; document result.
+- [x] If using HSM: validate PKCS#11 configuration and signing policy compliance.
 
 ### Signing workflow (NexU)
 
-See `docs/Signing-Workflow.md` for NexU download link, minimal Windows/Linux steps, and an example UI message.
+See `docs/Signing-Workflow.md` for NexU download links, Windows-only steps, and an example UI message.
 
 ## Phase 7 — Documentation and evaluation
 
@@ -262,6 +262,23 @@ See `docs/Signing-Workflow.md` for NexU download link, minimal Windows/Linux ste
 **Deliverable idea:** One Ansible playbook (or Podman Compose + one init script) that: installs OpenJDK 8, Tomcat 9, MySQL 8, deploys WAR and config, and optionally starts a minimal CAS — so that only “obtain WAR and set variables” remains manual.
 
 ---
+
+## 9.1 Must / Can / May (status)
+
+**Must (production):**
+- Replace lab JKS with a production signing key (QSCD/HSM) and disable auto-create.
+- Move secrets to vault and harden CAS (TLS, IdP, policies).
+- Ensure `/opt/tomcat/custom-config/` is on persistent storage and backed up.
+- Define monitoring, backups, and recovery procedures.
+
+**Can (recommended):**
+- Use NexU on operator Windows workstation for in-browser signing.
+- Run the external-signing flow as a fallback (export → sign → import).
+- Produce a short production-readiness assessment and recommendation for Bart.
+
+**May (optional):**
+- Podman-based deployment variant.
+- High-availability architecture (Tomcat cluster + DB replication).
 
 # 10. LLM-readable prompts
 
@@ -314,6 +331,10 @@ After the working setup is in place, fill this table and add a short narrative f
 - **High availability:** Current plan is single VM; HA would require Tomcat cluster, MySQL replication or managed DB, and CAS HA — document as future option if demand grows.
 - **EC roadmap:** Monitor eIDAS Dashboard and EC communications; if non-EU migration path is announced, plan migration from TL Manager to the new tool.
 - **TL Signing Tool:** Once Nexus access is available, add build/deploy of TL Signing Tool (or document “sign on workstation + upload” as supported workflow).
+- **Cloud deployment options:** evaluate managed or VM-based deployment in:
+  - **Azure** (VMs or managed MySQL equivalents, Azure Monitor, Key Vault).
+  - **AWS** (EC2 + RDS, CloudWatch, Secrets Manager).
+  - **Google Cloud** (Compute Engine + Cloud SQL, Cloud Monitoring, Secret Manager).
 
 ---
 

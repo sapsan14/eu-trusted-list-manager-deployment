@@ -155,6 +155,7 @@ Use these steps after initial deploy to verify that the system is operational:
 ## Signing workflow (NexU)
 
 NexU steps and UI example are documented in `docs/Signing-Workflow.md`.
+NexU is required for in-browser signing and runs on the operator Windows workstation; download links are listed there.
 
 If you prefer not to use NexU, export the TL XML, sign it with an external tool, and import it back into TL Manager.
 
