@@ -1,0 +1,16 @@
+---
+# Signing tools (NexU + SoftHSM) for lab validation
+signing_tools_install_packages: true
+signing_tools_install_nexu: false
+signing_tools_enable_pcscd: true
+
+# NexU download and install
+nexu_download_url: ""   # required when signing_tools_install_nexu=true
+nexu_install_dir: "/opt/nexu"
+nexu_bin_link: "/usr/local/bin/nexu"
+
+# SoftHSM token (optional)
+softhsm_create_token: false
+softhsm_token_label: "TLManager-SoftHSM"
+softhsm_user_pin: "1234"
+softhsm_so_pin: "12345678"

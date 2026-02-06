@@ -1,0 +1,6 @@
+---
+- name: Install signing tools (NexU + SoftHSM)
+  hosts: tlmanager
+  become: true
+  roles:
+    - role: signing_tools
