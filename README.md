@@ -10,15 +10,15 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 
 | Path | Description |
 | --- | --- |
-| [docs/EU-Trusted-List-Manager-Deployment-Plan.md](docs/EU-Trusted-List-Manager-Deployment-Plan.md) | **Main plan:** scope, resource ordering, time estimates, risks, checklists, LLM prompts. Includes current status and English source of truth. |
-| [docs/EU-Trusted-List-Manager-Deployment-Plan-RU.md](docs/EU-Trusted-List-Manager-Deployment-Plan-RU.md) | Russian translation of the main plan (kept in sync with the English version). |
-| [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md) | What Ansible automates, keyStore gap explained, post‑deploy prerequisites, variables reference. |
-| [docs/Signing-Workflow.md](docs/Signing-Workflow.md) | NexU signing steps (Windows) with download links and UI example. |
-| [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md) | VM install guide, access URLs, bootstrap user, SSH tunnel, common fixes. |
-| [docs/Production-Adjustments.md](docs/Production-Adjustments.md) | Production hardening checklist and required adjustments. |
-| [docs/DSS-and-Signing.md](docs/DSS-and-Signing.md) | DSS relationship and Trusted List signing summary. |
-| [docs/README.md](docs/README.md) | Documentation index (all guides and PDFs). |
-| `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf` | EC **Service Offering Description** (SOD) for TL Manager (purpose, roles, access); **no OS/stack requirements** inside. |
+| [EU Trusted List Manager Deployment Plan](docs/EU-Trusted-List-Manager-Deployment-Plan.md) | **Main plan:** scope, resource ordering, time estimates, risks, checklists, LLM prompts. Includes current status and English source of truth. |
+| [EU Trusted List Manager Deployment Plan (RU)](docs/EU-Trusted-List-Manager-Deployment-Plan-RU.md) | Russian translation of the main plan (kept in sync with the English version). |
+| [TL Manager Non‑EU Deployment and Automation](docs/TL-Manager-Non-EU-Deployment.md) | What Ansible automates, keyStore gap explained, post‑deploy prerequisites, variables reference. |
+| [Signing Workflow (NexU)](docs/Signing-Workflow.md) | NexU signing steps (Windows) with download links and UI example. |
+| [VM Deployment Guide](docs/VM-Deployment-Guide.md) | VM install guide, access URLs, bootstrap user, SSH tunnel, common fixes. |
+| [Production Adjustments](docs/Production-Adjustments.md) | Production hardening checklist and required adjustments. |
+| [DSS and Signing](docs/DSS-and-Signing.md) | DSS relationship and Trusted List signing summary. |
+| [Documentation Index](docs/README.md) | Documentation index (all guides and PDFs). |
+| `TL-Manager(ServiceOfferingDescription) (v0.03).pdf` | EC **Service Offering Description** (SOD) for TL Manager (purpose, roles, access); **no OS/stack requirements** inside. |
 | `ansible/` | Ansible roles and playbooks for **Phase 1** (base server), **Phase 2** (Tomcat + MySQL), **Phase 4** (TL Manager). See `ansible/README.md`. |
 | `scripts/` | Automation helpers (e.g. Confluence upload, future smoke tests/env checks). |
 
@@ -26,18 +26,18 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 
 ## Docs map
 
-- Start here: [docs/EU-Trusted-List-Manager-Deployment-Plan.md](docs/EU-Trusted-List-Manager-Deployment-Plan.md)
-- VM lab runbook: [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md)
-- Automation details: [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md)
-- Production hardening: [docs/Production-Adjustments.md](docs/Production-Adjustments.md)
-- DSS and signing: [docs/DSS-and-Signing.md](docs/DSS-and-Signing.md)
-- Full docs index: [docs/README.md](docs/README.md)
+- Start here: [EU Trusted List Manager Deployment Plan](docs/EU-Trusted-List-Manager-Deployment-Plan.md)
+- VM lab runbook: [VM Deployment Guide](docs/VM-Deployment-Guide.md)
+- Automation details: [TL Manager Non‑EU Deployment and Automation](docs/TL-Manager-Non-EU-Deployment.md)
+- Production hardening: [Production Adjustments](docs/Production-Adjustments.md)
+- DSS and signing: [DSS and Signing](docs/DSS-and-Signing.md)
+- Full docs index: [Documentation Index](docs/README.md)
 
 ---
 
 ## Quick start
 
-1. **Read the plan:** [docs/EU-Trusted-List-Manager-Deployment-Plan.md](docs/EU-Trusted-List-Manager-Deployment-Plan.md) — single source of truth for scope (Bart’s briefing), resource ordering, and step-by-step checklists (EN + RU).
+1. **Read the plan:** [EU Trusted List Manager Deployment Plan](docs/EU-Trusted-List-Manager-Deployment-Plan.md) — single source of truth for scope (Bart’s briefing), resource ordering, and step-by-step checklists (EN + RU).
 2. **Status / inputs:**
    - TL Manager package **TL-NEU-6.0.ZIP** is stored locally in `packages/`.
    - Target OS is **RHEL 9 from the start** (Bart), see plan §5 and §6.4.
@@ -53,10 +53,10 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 5. **Continue manually where needed:**
    - **Phase 3 (CAS)** — minimal Apereo CAS deployment is still manual / separate.
    - **Phase 5–7** — validation, optional signing test, documentation, and production-readiness evaluation (§11).
-6. **Post‑deploy prerequisites:** see [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md) for draft storage paths and country‑seed requirements (now automated).
+6. **Post‑deploy prerequisites:** see [TL Manager Non‑EU Deployment and Automation](docs/TL-Manager-Non-EU-Deployment.md) for draft storage paths and country‑seed requirements (now automated).
 7. **Operational guides:**
-   - [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md)
-   - [docs/Production-Adjustments.md](docs/Production-Adjustments.md)
+   - [VM Deployment Guide](docs/VM-Deployment-Guide.md)
+   - [Production Adjustments](docs/Production-Adjustments.md)
 
 ---
 

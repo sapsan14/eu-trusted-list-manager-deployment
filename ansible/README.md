@@ -1,6 +1,6 @@
 # Ansible — TL Manager deployment
 
-Automates **Phase 1** (base server), **Phase 2** (Tomcat 9 + MySQL 8), **Phase 3** (CAS WAR), and **Phase 4** (TL Manager WAR + config) from the [deployment plan](../docs/EU-Trusted-List-Manager-Deployment-Plan.md).
+Automates **Phase 1** (base server), **Phase 2** (Tomcat 9 + MySQL 8), **Phase 3** (CAS WAR), and **Phase 4** (TL Manager WAR + config) from the [EU Trusted List Manager Deployment Plan](../docs/EU-Trusted-List-Manager-Deployment-Plan.md).
 
 ## Requirements
 
@@ -16,11 +16,11 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 
 ## Docs
 
-- VM deployment: `docs/VM-Deployment-Guide.md`
-- Production adjustments: `docs/Production-Adjustments.md`
-- Deployment details: `docs/TL-Manager-Non-EU-Deployment.md`
-- DSS and signing: `docs/DSS-and-Signing.md`
-- Docs index (incl. PDFs): `docs/README.md`
+- VM deployment: [VM Deployment Guide](../docs/VM-Deployment-Guide.md)
+- Production adjustments: [Production Adjustments](../docs/Production-Adjustments.md)
+- Deployment details: [TL Manager Non‑EU Deployment and Automation](../docs/TL-Manager-Non-EU-Deployment.md)
+- DSS and signing: [DSS and Signing](../docs/DSS-and-Signing.md)
+- Docs index (incl. PDFs): [Documentation Index](../docs/README.md)
 
 ## Layout
 
@@ -29,7 +29,7 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
   - **tomcat** — Apache Tomcat 9.0.x from tarball, systemd service, MySQL connector JAR
   - **mysql** — MySQL 8 server, database `tlmanager`, user `tlmanager`
   - **cas** — deploy CAS WAR from `packages/` or from `TL-NEU-6.0.ZIP` to Tomcat `webapps/`
-  - **tlmanager** — deploy WAR (expanded), `context.xml` (JDBC), `proxy.properties`, patch `application.properties` (JDBC, proxy.*, signer/keystore, hibernate), **create signer keystore** (directory + keytool JKS + ownership), MySQL connector in `WEB-INF/lib`; verifies context startup from catalina.out. See [../docs/TL-Manager-Non-EU-Deployment.md](../docs/TL-Manager-Non-EU-Deployment.md).
+  - **tlmanager** — deploy WAR (expanded), `context.xml` (JDBC), `proxy.properties`, patch `application.properties` (JDBC, proxy.*, signer/keystore, hibernate), **create signer keystore** (directory + keytool JKS + ownership), MySQL connector in `WEB-INF/lib`; verifies context startup from catalina.out. See [TL Manager Non‑EU Deployment and Automation](../docs/TL-Manager-Non-EU-Deployment.md).
 - **playbooks/**
   - **site.yml** — full run (base → mysql+tomcat → cas → tlmanager)
   - **01-base.yml**, **02-runtime.yml**, **04-cas.yml**, **03-tlmanager.yml** — run phases separately
@@ -73,7 +73,7 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
    ```
 
 5. **After run:** Tomcat listens on port **8080** (HTTP). Open `http://<your-vm>:8080/` (or the context you set).  
-   **CAS** is deployed by **04-cas.yml** (or `site.yml`) at `/cas-server-webapp-4.0.0/`; set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` to match your access (see `docs/TL-Manager-Non-EU-Deployment.md`).  
+   **CAS** is deployed by **04-cas.yml** (or `site.yml`) at `/cas-server-webapp-4.0.0/`; set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` to match your access (see [TL Manager Non‑EU Deployment and Automation](../docs/TL-Manager-Non-EU-Deployment.md)).  
    **HTTPS:** CAS SSO requires HTTPS; enable HTTPS (`tomcat_https_enabled: true`) and access `<https://<your-vm>:8443/>`. Update CAS URLs to HTTPS and re-run `03-tlmanager.yml`.
 
    **Inventory snippet (add under `[tlmanager:vars]`):**
@@ -163,7 +163,7 @@ For PoC, passwords live in `group_vars/tlmanager/deployment-passwords.yml` (plai
 
 **HTTP 404 – Not Found on `/login`**
 
-- The app redirects to the CAS login page; if CAS is not deployed, you get 404 on `/login`. See [TL-Manager-Non-EU-Deployment.md](../docs/TL-Manager-Non-EU-Deployment.md) section "HTTP 404 – Not Found on /login (CAS not deployed)": deploy Apereo CAS (or EC CAS WAR) and set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` to match (e.g. when using an SSH tunnel, use the tunnel host/port in both URLs). Re-run the playbook after changing these vars.
+- The app redirects to the CAS login page; if CAS is not deployed, you get 404 on `/login`. See [TL Manager Non‑EU Deployment and Automation](../docs/TL-Manager-Non-EU-Deployment.md) section "HTTP 404 – Not Found on /login (CAS not deployed)": deploy Apereo CAS (or EC CAS WAR) and set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` to match (e.g. when using an SSH tunnel, use the tunnel host/port in both URLs). Re-run the playbook after changing these vars.
 
 ## Optional
 

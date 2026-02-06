@@ -1,12 +1,12 @@
 # TL Manager (non-EU) v6 — Deployment and automation
 
-This document describes how **TL Manager non-EU v6** is deployed in this project and what is done **automatically** by Ansible. It complements the PDF guides in `docs/` and the [Deployment Plan](EU-Trusted-List-Manager-Deployment-Plan.md).
+This document describes how **TL Manager non-EU v6** is deployed in this project and what is done **automatically** by Ansible. It complements the PDF guides and the [EU Trusted List Manager Deployment Plan](EU-Trusted-List-Manager-Deployment-Plan.md).
 
 Related guides:
 
-- `docs/VM-Deployment-Guide.md` — step-by-step VM install
-- `docs/Production-Adjustments.md` — production hardening checklist
-- `docs/DSS-and-Signing.md` — DSS relationship and signing summary
+- [VM Deployment Guide](VM-Deployment-Guide.md) — step-by-step VM install
+- [Production Adjustments](Production-Adjustments.md) — production hardening checklist
+- [DSS and Signing](DSS-and-Signing.md) — DSS relationship and signing summary
 
 ---
 
@@ -14,8 +14,8 @@ Related guides:
 
 | Document | Location | Description |
 | --- | --- | --- |
-| **Service Offering Description** | `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf` | Purpose, users, roles, access process (EC TLSO). |
-| **Installation, Migration & Utilisation guide** | `docs/TLManager Non-EU - V6.0 - Installation, Migration & Utilisation guide 1.pdf` | Installation, migration and usage for non-EU v6.0. |
+| **Service Offering Description** | `TL-Manager(ServiceOfferingDescription) (v0.03).pdf` | Purpose, users, roles, access process (EC TLSO). |
+| **Installation, Migration & Utilisation guide** | `TLManager Non-EU - V6.0 - Installation, Migration & Utilisation guide 1.pdf` | Installation, migration and usage for non-EU v6.0. |
 
 Official EC page: [TL manager non-EU v6.0](https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/920062707/TL+manager+non-EU+v6.0).
 
@@ -159,7 +159,7 @@ Use these steps after initial deploy to verify that the system is operational:
 
 ## Signing workflow (NexU)
 
-NexU steps and UI example are documented in `docs/Signing-Workflow.md`.
+NexU steps and UI example are documented in [Signing Workflow (NexU)](Signing-Workflow.md).
 NexU is required for in-browser signing and runs on the operator Windows workstation; download links are listed there.
 
 If you prefer not to use NexU, export the TL XML, sign it with an external tool, and import it back into TL Manager.
@@ -227,14 +227,14 @@ Credentials for DB and app are taken from `ansible/group_vars/tlmanager/deployme
 
 Operational steps and troubleshooting are maintained in focused guides:
 
-- `docs/VM-Deployment-Guide.md` — install steps, access URLs, bootstrap user, SSH tunnel, common fixes
-- `docs/Production-Adjustments.md` — production hardening checklist
-- `docs/DSS-and-Signing.md` — DSS relationship and signing summary
+- [VM Deployment Guide](VM-Deployment-Guide.md) — install steps, access URLs, bootstrap user, SSH tunnel, common fixes
+- [Production Adjustments](Production-Adjustments.md) — production hardening checklist
+- [DSS and Signing](DSS-and-Signing.md) — DSS relationship and signing summary
 
 ---
 
 ## See also
 
-- `docs/EU-Trusted-List-Manager-Deployment-Plan.md` — plan, status, and checklists
-- `ansible/README.md` — playbooks and variables
-- `docs/README.md` — documentation index (all guides and PDFs)
+- [EU Trusted List Manager Deployment Plan](EU-Trusted-List-Manager-Deployment-Plan.md) — plan, status, and checklists
+- [Ansible — TL Manager deployment](../ansible/README.md) — playbooks and variables
+- [Documentation Index](README.md) — documentation index (all guides and PDFs)

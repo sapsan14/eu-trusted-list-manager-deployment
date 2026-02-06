@@ -51,7 +51,7 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 
 - **What:** Web application for browsing, editing, and monitoring Trusted Lists. Provided by the EC to Trusted List Operators.  
 - **Status:** In October 2025 it was announced that the Trusted List Manager is being **decommissioned** for EU use; it is no longer hosted or maintained. The replacement is the **eIDAS Dashboard** (<https://eidas.ec.europa.eu/efda/home>). **For non-EU countries it remains in use**; recently **v6** was released.  
-- **Service manual (PDF):** EC link below; **local copy:** `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf`  
+- **Service manual (PDF):** EC link below; **local copy:** `TL-Manager(ServiceOfferingDescription) (v0.03).pdf`  
   <https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/42358785/Trusted+List+Manager?preview=/42358785/52598139/TL-Manager(ServiceOfferingDescription)%20(v0.03).pdf>  
   *(This SOD describes purpose, users, roles, access process; it does not specify OS or runtime stack — see §5 for stack from deployment package/other EC docs.)*  
 - **Source and deployment package (non-EU v6.0):**  
@@ -243,7 +243,7 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ### Signing workflow (NexU)
 
-See `docs/Signing-Workflow.md` for NexU download links, Windows-only steps, and an example UI message.
+See [Signing Workflow (NexU)](Signing-Workflow.md) for NexU download links, Windows-only steps, and an example UI message.
 
 ## Phase 7 — Documentation and evaluation
 
@@ -352,10 +352,10 @@ After the working setup is in place, fill this table and add a short narrative f
   <https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/920062707/TL+manager+non-EU+v6.0>  
 - **TL Manager service manual (PDF):**  
   <https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/42358785/Trusted+List+Manager?preview=/42358785/52598139/TL-Manager(ServiceOfferingDescription)%20(v0.03).pdf>  
-  **Local copy:** `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf`  
+  **Local copy:** `TL-Manager(ServiceOfferingDescription) (v0.03).pdf`  
 - **TL Manager non-EU v6 — Installation, Migration & Utilisation guide (PDF):**  
-  **Local copy:** `docs/TLManager Non-EU - V6.0 - Installation, Migration & Utilisation guide 1.pdf`  
-- **Deployment and automation (this repo):** [docs/TL-Manager-Non-EU-Deployment.md](TL-Manager-Non-EU-Deployment.md) — what Ansible does automatically, signer keystore, PDF references.  
+  **Local copy:** `TLManager Non-EU - V6.0 - Installation, Migration & Utilisation guide 1.pdf`  
+- **Deployment and automation (this repo):** [TL Manager Non‑EU Deployment and Automation](TL-Manager-Non-EU-Deployment.md) — what Ansible does automatically, signer keystore, PDF references.  
 - **eIDAS Dashboard (EU replacement):** <https://eidas.ec.europa.eu/efda/home>  
 - **eIDAS USB tokens (QSCD):** QSCD.eu — e.g. **Gemalto SafeNet eToken 5110 CC (940)**; order 6 devices via Riho.  
 - **Trusted List Signing Tool:**  
