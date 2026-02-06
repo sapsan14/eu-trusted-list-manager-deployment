@@ -34,6 +34,7 @@
 
 ### Signing (optional)
 - ✅ Order 6 QSCD tokens (via Riho).
+- [ ] NexU download link shared with operators.
 - [ ] Install NexU on operator workstation and verify it is running.
 - [ ] Install token drivers (USB/QSCD or HSM client); confirm token is visible.
 - [ ] Sign in TL Manager via NexU and document result.

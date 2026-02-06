@@ -237,6 +237,10 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 - [ ] **Alternative flow:** export TL XML, sign with external tool (HSM or local signing app), re‑import into TL Manager; document result.
 - [ ] If using HSM: validate PKCS#11 configuration and signing policy compliance.
 
+### Signing workflow (NexU)
+
+See `docs/Signing-Workflow.md` for NexU download link, minimal Windows/Linux steps, and an example UI message.
+
 ## Phase 7 — Documentation and evaluation
 
 - [x] Write internal doc: architecture, ports, DB credentials storage, backup of DB and config. **Done: VM guide + production adjustments + deployment doc.**

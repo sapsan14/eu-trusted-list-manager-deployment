@@ -152,6 +152,14 @@ Use these steps after initial deploy to verify that the system is operational:
 
 ---
 
+## Signing workflow (NexU)
+
+NexU steps and UI example are documented in `docs/Signing-Workflow.md`.
+
+If you prefer not to use NexU, export the TL XML, sign it with an external tool, and import it back into TL Manager.
+
+---
+
 ## Production requirements (must do)
 
 **Keys and signing**

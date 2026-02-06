@@ -13,6 +13,7 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 | [docs/EU-Trusted-List-Manager-Deployment-Plan.md](docs/EU-Trusted-List-Manager-Deployment-Plan.md) | **Main plan:** scope, resource ordering, time estimates, risks, checklists, LLM prompts. Includes current status and English source of truth. |
 | [docs/EU-Trusted-List-Manager-Deployment-Plan-RU.md](docs/EU-Trusted-List-Manager-Deployment-Plan-RU.md) | Russian translation of the main plan (kept in sync with the English version). |
 | [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md) | What Ansible automates, keyStore gap explained, post‑deploy prerequisites, variables reference. |
+| [docs/Signing-Workflow.md](docs/Signing-Workflow.md) | NexU signing steps (Windows/Linux) and UI example. |
 | [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md) | VM install guide, access URLs, bootstrap user, SSH tunnel, common fixes. |
 | [docs/Production-Adjustments.md](docs/Production-Adjustments.md) | Production hardening checklist and required adjustments. |
 | [docs/DSS-and-Signing.md](docs/DSS-and-Signing.md) | DSS relationship and Trusted List signing summary. |
