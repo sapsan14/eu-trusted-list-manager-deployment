@@ -34,6 +34,7 @@ Related guides:
 
 - Replace lab signer keystore with **production QSCD** or approved keys.
 - Document key lifecycle, rotation, and access control.
+- If using HSM: document PKCS#11 module, slots, and operational procedures.
 
 ## 6) Monitoring and logging
 

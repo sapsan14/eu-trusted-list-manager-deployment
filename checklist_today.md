@@ -34,7 +34,10 @@
 
 ### Signing (optional)
 - ✅ Order 6 QSCD tokens (via Riho).
-- [ ] Install token drivers on workstation.
+- [ ] Install NexU on operator workstation and verify it is running.
+- [ ] Install token drivers (USB/QSCD or HSM client); confirm token is visible.
+- [ ] Sign in TL Manager via NexU and document result.
+- [ ] Alternative flow: export TL XML → sign externally → re‑import and validate.
 - [ ] Run signing/validation test and document results.
 
 ### Production readiness

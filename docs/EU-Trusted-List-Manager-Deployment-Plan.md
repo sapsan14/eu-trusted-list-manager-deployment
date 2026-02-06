@@ -231,7 +231,11 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 ## Phase 6 — Optional signing
 
 - [ ] **eIDAS USB tokens (QSCD):** Ask Riho to order **6 devices**. Use Common Criteria certified QSCD product, e.g. **Gemalto SafeNet eToken 5110 CC (940)** — QSCD.eu.
-- [ ] Install token drivers on workstation; in TL Manager, test “sign with local device” or “upload signed XML” flow; document result (e.g. “signed but not validated” without CA in trust store).
+- [ ] **NexU (local signing bridge):** install and start NexU on the operator workstation; verify TL Manager detects it.
+- [ ] Install token drivers on workstation (USB/QSCD or HSM client); verify OS sees token.
+- [ ] **Sign in TL Manager via NexU** using USB token (PKCS#11) and document result.
+- [ ] **Alternative flow:** export TL XML, sign with external tool (HSM or local signing app), re‑import into TL Manager; document result.
+- [ ] If using HSM: validate PKCS#11 configuration and signing policy compliance.
 
 ## Phase 7 — Documentation and evaluation
 
