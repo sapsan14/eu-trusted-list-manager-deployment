@@ -28,9 +28,9 @@
 ## 3) Remaining Steps (Checklist)
 ### Functional validation
 - [x] Create/import a test Trusted List (XML).
-- [ ] Edit and save changes via the UI.
-- [ ] Verify operator audit/logging (if available).
-- [ ] Record any limitations or errors found.
+- [x] Edit and save changes via the UI.
+- [x] Verify operator audit/logging (if available).
+- [x] Record any limitations or errors found (none observed).
 
 ### Signing (optional)
 - ✅ Order 6 QSCD tokens (via Riho).
