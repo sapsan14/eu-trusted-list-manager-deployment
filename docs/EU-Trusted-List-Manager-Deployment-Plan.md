@@ -12,7 +12,7 @@
 
 ---
 
-# Table of Contents
+## Table of Contents
 
 - [1. Source of truth — Scope and task (Bart)](#1-source-of-truth--scope-and-task-bart)
 - [2. Tools in scope](#2-tools-in-scope)
@@ -30,13 +30,14 @@
 
 ---
 
-# 1. Source of truth — Scope and task (Bart)
+## 1. Source of truth — Scope and task (Bart)
 
 **SCOPE:**  
 Experimentation with the European Commission’s open-source tool for editing, signing, and validating trusted lists. The Commission has published two tools: **Trusted List Manager** and **Trusted List Signing Tool**. The **Manager** is the most important and is the **priority**.  
 The goal is to test how complex it is to **deploy, host, and support/maintain** this tool as a service for **non-EU countries**.
 
 **TASK:**  
+
 - Try to **install it and get it to a working setup**.  
 - Either as a **VM** or a **Podman** container.  
 - Best with **Red Hat Linux** (company standard) or an **RHEL derivative**.  
@@ -44,42 +45,42 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 
 ---
 
-# 2. Tools in scope
+## 2. Tools in scope
 
 ## 2.1 Trusted List Manager (non-EU, priority)
 
 - **What:** Web application for browsing, editing, and monitoring Trusted Lists. Provided by the EC to Trusted List Operators.  
-- **Status:** In October 2025 it was announced that the Trusted List Manager is being **decommissioned** for EU use; it is no longer hosted or maintained. The replacement is the **eIDAS Dashboard** (https://eidas.ec.europa.eu/efda/home). **For non-EU countries it remains in use**; recently **v6** was released.  
+- **Status:** In October 2025 it was announced that the Trusted List Manager is being **decommissioned** for EU use; it is no longer hosted or maintained. The replacement is the **eIDAS Dashboard** (<https://eidas.ec.europa.eu/efda/home>). **For non-EU countries it remains in use**; recently **v6** was released.  
 - **Service manual (PDF):** EC link below; **local copy:** `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf`  
-  https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/42358785/Trusted+List+Manager?preview=/42358785/52598139/TL-Manager(ServiceOfferingDescription)%20(v0.03).pdf  
+  <https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/42358785/Trusted+List+Manager?preview=/42358785/52598139/TL-Manager(ServiceOfferingDescription)%20(v0.03).pdf>  
   *(This SOD describes purpose, users, roles, access process; it does not specify OS or runtime stack — see §5 for stack from deployment package/other EC docs.)*  
 - **Source and deployment package (non-EU v6.0):**  
-  https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/920062707/TL+manager+non-EU+v6.0  
+  <https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/920062707/TL+manager+non-EU+v6.0>  
   **In this project:** `packages/TL-NEU-6.0.ZIP`  
 - **Nexus (requires login; source/zip listed, download may be restricted):**  
-  - Browse: `https://ec.europa.eu/digital-building-blocks/artifact/#browse/browse:esignaturetlm:eu%2Feuropa%2Fec%2Fcef%2Fesignature%2FTL-NEU%2F6.0`  
+  - Browse: <https://ec.europa.eu/digital-building-blocks/artifact/#browse/browse:esignaturetlm:eu%2Feuropa%2Fec%2Fcef%2Fesignature%2FTL-NEU%2F6.0>  
   - ZIP: `.../TL-NEU-6.0.ZIP`
 
 **Signing options:**  
 - **eIDAS USB tokens (QSCD)** — order via Riho: 6× Common Criteria certified QSCD devices, e.g. **Gemalto SafeNet eToken 5110 CC (940)** from QSCD.eu.  
 - **Trusted List Signing Tool** (local) — sign TLs locally, then upload/download (un)signed XML via the Manager:  
-  https://ec.europa.eu/digital-building-blocks/artifact/#browse/browse:esignaturetlm:eu%2Feuropa%2Fec%2Fcef%2Fesignature%2FTLSigning%2F2.1  
+  <https://ec.europa.eu/digital-building-blocks/artifact/#browse/browse:esignaturetlm:eu%2Feuropa%2Fec%2Fcef%2Fesignature%2FTLSigning%2F2.1>  
 
 ## 2.2 Trusted List Signing Tool (secondary)
 
 - **What:** Small local digital signing software; creates **XAdES** signatures compliant with **ETSI TS 119 612 v2.1.1 to v2.4.1**; detects trusted list version and signs accordingly.  
-- **Page:** https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/924976410/Trusted+List+Signing+Tool  
+- **Page:** <https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/924976410/Trusted+List+Signing+Tool>  
 - **Version:** v2.1 (04/2025), compliant with TL v6 specification.  
 - **Download:** Repository managed by Nexus for the EC; **requires an account** (Bart did not find how to obtain one).  
 - **Source and build instructions:**  
-  https://ec.europa.eu/digital-building-blocks/artifact/#browse/browse:esignaturetlm:eu%2Feuropa%2Fec%2Fcef%2Fesignature%2FTLSigning  
+  <https://ec.europa.eu/digital-building-blocks/artifact/#browse/browse:esignaturetlm:eu%2Feuropa%2Fec%2Fcef%2Fesignature%2FTLSigning>  
 
 ---
 
-# 3. Prerequisites and blockers
+## 3. Prerequisites and blockers
 
 | Item | Status | Action |
-|------|--------|--------|
+| --- | --- | --- |
 | **Nexus / DBB account** | Required **only for TL Signing Tool** (not for TL Manager package) | Request if/when deploying TL Signing Tool; TL Manager package may be obtained internally or via TLSO. |
 | **Red Hat / RHEL 9 VM or host** | Required | **RHEL 9 from the start** (Bart). Provision RHEL 9 or Rocky Linux 9 / AlmaLinux 9. See §4. |
 | **Podman (optional)** | Preferred for reproducibility | Install Podman on RHEL derivative. |
@@ -87,12 +88,12 @@ The goal is to test how complex it is to **deploy, host, and support/maintain** 
 
 ---
 
-# 4. Resource ordering and procurement
+## 4. Resource ordering and procurement
 
 Order these **in parallel** where possible to avoid idle time. Lead times are typical; adjust to your organisation.
 
 | Resource | Spec / details | Who to request | Lead time (estimate) | Checklist |
-|----------|----------------|----------------|------------------------|-----------|
+| --- | --- | --- | --- | --- |
 | **VM (lab)** | 2 vCPU, 4 GB RAM, 20 GB disk; **RHEL 9** (or Rocky 9 / Alma 9); internal/lab network | IT / infra team or cloud portal | 3–10 days | [ ] Request form submitted; [ ] OS template chosen; [ ] Hostname reserved (e.g. `tl-manager-lab.internal`); [ ] SSH key or VPN access confirmed |
 | **Nexus / DBB account** | **Only for TL Signing Tool.** Access to EC DBB artifact repository (TL Signing). TL Manager (TL-NEU-6.0.ZIP) may be from internal/TLSO. | EC TLSO or DBB contact when deploying Signing Tool | 1–4 weeks if needed | [ ] Contact identified; [ ] Request sent; [ ] Credentials received and stored in vault |
 | **Internal DNS (optional)** | A record for `tl-manager-lab.internal` (and e.g. `cas-lab.internal` if CAS on same host) | Network / DNS team | 1–3 days | [ ] Hostname(s) requested; [ ] Record created |
@@ -111,15 +112,17 @@ Order these **in parallel** where possible to avoid idle time. Lead times are ty
 
 ---
 
-# 5. Environment and stack
+## 5. Environment and stack
 
 **Official stack (from EC — Debian 12):**  
+
 - OpenJDK **1.8**  
 - Apache Tomcat **9.0.102**  
 - MySQL **8.0.41**  
 - Linux (Debian 12)
 
 **Target for this plan (Bart: RHEL 9 from the start):**  
+
 - **OS:** **RHEL 9** (or Rocky Linux 9 / AlmaLinux 9 as RHEL-equivalent)  
 - **Java:** OpenJDK 8 (match application requirement; use `java-1.8.0-openjdk` on RHEL)  
 - **App server:** Apache Tomcat 9.0.x (align with 9.0.102 if possible)  
@@ -128,17 +131,18 @@ Order these **in parallel** where possible to avoid idle time. Lead times are ty
 - **Deployment:** Single VM **or** Podman containers (Tomcat + MySQL + optional CAS container)
 
 **CAS (Central Authentication Service):**  
-- Apereo CAS: https://github.com/apereo/cas  
+
+- Apereo CAS: <https://github.com/apereo/cas>  
 - Supports CAS, SAML2, OIDC, OAuth2, MFA, LDAP, etc.; deploy as separate service or container; TL Manager will be configured to use CAS as identity provider.
 
 ---
 
-# 6. Detailed plan with time estimates
+## 6. Detailed plan with time estimates
 
 Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 | Phase | Description | Est. time (days) | Est. hours | Notes |
-|-------|-------------|------------------|------------|--------|
+| --- | --- | --- | --- | --- |
 | **0** | Unblock: obtain TL Manager package (internal / TLSO; Nexus only needed for TL Signing Tool) | 1–3 d | 2–4 h active | TL Manager package via internal or TLSO; Nexus/DBB only for Signing Tool. |
 | **1** | Provision base VM; OS hardening; SSH; firewall; base packages | 0.5 d | 2–4 h | Can be automated (Ansible/IaC). VM lead time separate. |
 | **2** | Install OpenJDK 8, Tomcat 9, MySQL 8 (or MariaDB) on host or containers | 0.5–1 d | 4–6 h | Package manager + config or Podman Compose. |
@@ -155,10 +159,10 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ---
 
-# 7. Risks and mitigations
+## 7. Risks and mitigations
 
 | Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
+| --- | --- | --- | --- |
 | Nexus/DBB account never granted or delayed | Medium | Blocker **for TL Signing Tool only** | TL Manager package via internal/TLSO; Nexus needed only for Signing Tool. Request early if Signing Tool required. |
 | TL Manager not compatible with RHEL/MySQL 8 / Tomcat 9.0.x | Low–Medium | High | Stick to documented versions; test on Debian 12 in a container first if issues arise. |
 | CAS setup more complex than expected | Medium | Medium | Allocate 2 days for CAS; use minimal overlay or prebuilt CAS Docker image; consider “static user list” only for lab. |
@@ -170,7 +174,7 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ---
 
-# 8. Concrete steps (checklist)
+## 8. Concrete steps (checklist)
 
 ## Phase 0 — Unblock package access
 
@@ -188,7 +192,7 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 - [x] Create a dedicated service user for running Tomcat (if not using containers). **Done: `tomcat` user/group created.**
 - [ ] Harden OS: disable unnecessary services; ensure `sshd` is key-only if possible.
 
-# Phase 2 — Runtime stack (choose A or B)
+## Phase 2 — Runtime stack (choose A or B)
 
 **Option A — Host install (no containers)**
 
@@ -208,7 +212,7 @@ Estimates assume one person; **Phase 0** can run in parallel with VM request.
 
 ## Phase 3 — CAS **(done)**
 
-- [x] Deploy Apereo CAS (e.g. overlay from https://github.com/apereo/cas) as a separate WAR or use a minimal CAS Docker image. **Done via Ansible (`04-cas.yml`, CAS WAR from EC package).**
+- [x] Deploy Apereo CAS (e.g. overlay from <https://github.com/apereo/cas>) as a separate WAR or use a minimal CAS Docker image. **Done via Ansible (`04-cas.yml`, CAS WAR from EC package).**
 - [x] Configure CAS to allow one service (TL Manager callback URL); minimal auth (e.g. static user list or LDAP if available). **Done: default in-memory registry allows HTTP(S) services; user `test/password` in CAS WAR.**
 - [x] Note CAS login URL and service URL; set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` (e.g. in `group_vars/tlmanager/`), then re-run the tlmanager playbook so `application-tlmanager-non-eu-custom.properties` is updated. **Done.**
 - [x] Test CAS login in browser; then open TL Manager and complete login (Phase 5). **Done.**
@@ -248,10 +252,10 @@ See `docs/Signing-Workflow.md` for NexU download links, Windows-only steps, and 
 
 ---
 
-# 9. Automation where possible
+## 9. Automation where possible
 
 | Task | Automation approach |
-|------|----------------------|
+| --- | --- |
 | VM provisioning | Ansible playbook or Terraform: create VM, hostname, firewall, base packages, `podman`. |
 | OpenJDK + Tomcat + MySQL on host | Ansible: install packages, unpack Tomcat, create DB and user, deploy config files. |
 | Podman stack | `podman-compose` or shell: start MySQL, Tomcat; init DB from SQL file. |
@@ -266,21 +270,24 @@ See `docs/Signing-Workflow.md` for NexU download links, Windows-only steps, and 
 ## 9.1 Must / Can / May (status)
 
 **Must (production):**
+
 - Replace lab JKS with a production signing key (QSCD/HSM) and disable auto-create.
 - Move secrets to vault and harden CAS (TLS, IdP, policies).
 - Ensure `/opt/tomcat/custom-config/` is on persistent storage and backed up.
 - Define monitoring, backups, and recovery procedures.
 
 **Can (recommended):**
-- Use NexU on operator Windows workstation for in-browser signing.
+
+- Use NexU on operator Windows workstation for in-browser signing. **Done.**
 - Run the external-signing flow as a fallback (export → sign → import).
 - Produce a short production-readiness assessment and recommendation for Bart.
 
 **May (optional):**
+
 - Podman-based deployment variant.
 - High-availability architecture (Tomcat cluster + DB replication).
 
-# 10. LLM-readable prompts
+## 10. LLM-readable prompts
 
 Use these as-is for an LLM or assistant to generate scripts, configs, or commands. Assume Red Hat / Rocky Linux 9 unless stated.
 
@@ -294,22 +301,22 @@ Use these as-is for an LLM or assistant to generate scripts, configs, or command
 “Write a podman-compose.yml or shell script that: runs MySQL 8 container with a named volume and env MYSQL_DATABASE=tlmanager, MYSQL_USER and MYSQL_PASSWORD; runs a Tomcat 9 container with OpenJDK 8, mounting a host directory for webapps so we can drop a WAR. Expose Tomcat on host 8080. Include a short README with start/stop commands.”
 
 **Prompt 4 — CAS minimal**  
-“I need minimal Apereo CAS 6.x configuration for one service: the service ID is ‘https://tl-manager-lab.internal/.*’ and the CAS server URL is https://cas-lab.internal/cas. Provide application.yml (or properties) snippets for in-memory service registry and one static user (e.g. admin/admin) for testing. No LDAP, no MFA.”
+“I need minimal Apereo CAS 6.x configuration for one service: the service ID is ‘<https://tl-manager-lab.internal/.*>’ and the CAS server URL is <https://cas-lab.internal/cas>. Provide application.yml (or properties) snippets for in-memory service registry and one static user (e.g. admin/admin) for testing. No LDAP, no MFA.”
 
 **Prompt 5 — TL Manager config**  
-“The Trusted List Manager (EU EC, non-EU v6) runs on Tomcat and needs: MySQL JDBC URL jdbc:mysql://localhost:3306/tlmanager, username tlmanager, password from env; CAS login URL https://cas-lab.internal/cas/login; CAS service URL https://tl-manager-lab.internal/. Where would these typically go in a Tomcat-deployed Java app (context.xml, JNDI, or application properties)? Give a concrete example for Tomcat 9.”
+“The Trusted List Manager (EU EC, non-EU v6) runs on Tomcat and needs: MySQL JDBC URL `jdbc:mysql://localhost:3306/tlmanager`, username tlmanager, password from env; CAS login URL <https://cas-lab.internal/cas/login>; CAS service URL <https://tl-manager-lab.internal/>. Where would these typically go in a Tomcat-deployed Java app (context.xml, JNDI, or application properties)? Give a concrete example for Tomcat 9.”
 
 **Prompt 6 — Smoke test**  
-“Write a bash script that: (1) curls -s -o /dev/null -w '%{http_code}' http://localhost:8080/ and expects 200 or 302; (2) curls the CAS login page and checks for 200; (3) prints PASS or FAIL. Use only curl and standard shell. No authentication in script.”
+“Write a bash script that: (1) curls -s -o /dev/null -w '%{http_code}' <http://localhost:8080/> and expects 200 or 302; (2) curls the CAS login page and checks for 200; (3) prints PASS or FAIL. Use only curl and standard shell. No authentication in script.”
 
 ---
 
-# 11. Production-readiness evaluation
+## 11. Production-readiness evaluation
 
 After the working setup is in place, fill this table and add a short narrative for Bart.
 
 | Criterion | Low / Medium / High effort | Notes |
-|-----------|----------------------------|--------|
+| --- | --- | --- |
 | Deployment reproducibility | | Ansible / Podman / manual? |
 | Dependency lifecycle | | OpenJDK 8 EOL; Tomcat 9; MySQL 8 maintenance. |
 | CAS hardening | | Real IdP, TLS, MFA? |
@@ -324,7 +331,7 @@ After the working setup is in place, fill this table and add a short narrative f
 
 ---
 
-# 12. Forward-looking: post-PoC and scaling
+## 12. Forward-looking: post-PoC and scaling
 
 - **If PoC succeeds:** Plan a “production-like” environment: dedicated VM(s), TLS, real IdP (e.g. company LDAP/OIDC), backup, monitoring, and runbook. Consider separate CAS instance and DB backup retention.
 - **Compliance:** For non-EU TL operators, document how this deployment aligns with any national or contractual requirements (e.g. eIDAS alignment, audit logs).
@@ -338,22 +345,22 @@ After the working setup is in place, fill this table and add a short narrative f
 
 ---
 
-# 13. References
+## 13. References
 
 - **Bart’s briefing** — Single source of truth (this document §1).  
 - **TL Manager (non-EU v6):**  
-  https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/920062707/TL+manager+non-EU+v6.0  
+  <https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/920062707/TL+manager+non-EU+v6.0>  
 - **TL Manager service manual (PDF):**  
-  https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/42358785/Trusted+List+Manager?preview=/42358785/52598139/TL-Manager(ServiceOfferingDescription)%20(v0.03).pdf  
+  <https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/42358785/Trusted+List+Manager?preview=/42358785/52598139/TL-Manager(ServiceOfferingDescription)%20(v0.03).pdf>  
   **Local copy:** `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf`  
 - **TL Manager non-EU v6 — Installation, Migration & Utilisation guide (PDF):**  
   **Local copy:** `docs/TLManager Non-EU - V6.0 - Installation, Migration & Utilisation guide 1.pdf`  
 - **Deployment and automation (this repo):** [docs/TL-Manager-Non-EU-Deployment.md](TL-Manager-Non-EU-Deployment.md) — what Ansible does automatically, signer keystore, PDF references.  
-- **eIDAS Dashboard (EU replacement):** https://eidas.ec.europa.eu/efda/home  
+- **eIDAS Dashboard (EU replacement):** <https://eidas.ec.europa.eu/efda/home>  
 - **eIDAS USB tokens (QSCD):** QSCD.eu — e.g. **Gemalto SafeNet eToken 5110 CC (940)**; order 6 devices via Riho.  
 - **Trusted List Signing Tool:**  
-  https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/924976410/Trusted+List+Signing+Tool  
-- **Apereo CAS:** https://github.com/apereo/cas  
+  <https://ec.europa.eu/digital-building-blocks/sites/spaces/TLSO/pages/924976410/Trusted+List+Signing+Tool>  
+- **Apereo CAS:** <https://github.com/apereo/cas>  
 
 ---
 

@@ -3,6 +3,7 @@
 This document describes how **TL Manager non-EU v6** is deployed in this project and what is done **automatically** by Ansible. It complements the PDF guides in `docs/` and the [Deployment Plan](EU-Trusted-List-Manager-Deployment-Plan.md).
 
 Related guides:
+
 - `docs/VM-Deployment-Guide.md` — step-by-step VM install
 - `docs/Production-Adjustments.md` — production hardening checklist
 - `docs/DSS-and-Signing.md` — DSS relationship and signing summary
@@ -12,7 +13,7 @@ Related guides:
 ## Reference documentation (PDF)
 
 | Document | Location | Description |
-|----------|----------|-------------|
+| --- | --- | --- |
 | **Service Offering Description** | `docs/TL-Manager(ServiceOfferingDescription) (v0.03).pdf` | Purpose, users, roles, access process (EC TLSO). |
 | **Installation, Migration & Utilisation guide** | `docs/TLManager Non-EU - V6.0 - Installation, Migration & Utilisation guide 1.pdf` | Installation, migration and usage for non-EU v6.0. |
 
@@ -100,6 +101,7 @@ Two application behaviors must be configured explicitly on Linux after the initi
 ### 1) Country list (TL_COUNTRIES) must be seeded
 
 Symptoms when missing:
+
 - “Select a Country” is empty.
 - Importing a TL fails with: **“Scheme Territory … empty or not found in properties.”**
 
@@ -108,18 +110,21 @@ Symptoms when missing:
 ### 2) Draft storage path must use Linux separators
 
 The WAR ships with Windows‑style defaults:
-```
+
+```properties
 tsl.folder = ${catalina.base}\\custom-config\\tsl
 logs.folder = ${catalina.base}\\custom-config\\logs
 dss.constraint = ${catalina.base}\\custom-config\\tsl-constraint.xml
 ```
 
 Symptoms when not fixed:
+
 - “Create an empty draft” or “Import from local file” fails with **Bad Request**.
 - Logs show a path like:
   `.../custom-config\tsl/BE/...` and “No such file or directory”.
 
 **What this repo does:** sets Linux paths and creates them:
+
 - `/opt/tomcat/custom-config/tsl`
 - `/opt/tomcat/custom-config/logs`
 - `/opt/tomcat/custom-config/tsl-constraint.xml` (copied from the WAR)
@@ -163,24 +168,28 @@ If you prefer not to use NexU, export the TL XML, sign it with an external tool,
 
 ## Production requirements (must do)
 
-**Keys and signing**
+### Keys and signing
+
 - Replace the lab JKS with a **production signing key** (QSCD/HSM or approved keystore).
 - Set:
   - `tlmanager_signer_keystore_path`
   - `tlmanager_signer_keystore_password`
   - `tlmanager_signer_keystore_create: false`
 
-**Storage and paths**
+### Storage and paths
+
 - Ensure `/opt/tomcat/custom-config/` is on persistent storage.
 - Set strict file permissions for keystore and logs.
 - Back up **TSL drafts** and **logs** as part of the runbook.
 
-**Security and compliance**
+### Security and compliance
+
 - Move passwords to **vault** (do not keep in `group_vars`).
 - Harden CAS (TLS, IdP, policies) and align certificate hostname.
 - Perform security review of **JDK 8** (EOL) and dependencies.
 
-**Operational**
+### Operational
+
 - Monitor Tomcat, MySQL, disk usage, and log rotation.
 - Define recovery steps for DB + `custom-config`.
 
@@ -189,7 +198,7 @@ If you prefer not to use NexU, export the TL XML, sign it with an external tool,
 ## Variables (defaults)
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| --- | --- | --- |
 | `tlmanager_webapp_context` | `tl-manager-non-eu` | Context path (URL: `/tl-manager-non-eu/`). |
 | `tlmanager_signer_keystore_path` | `/opt/tomcat/conf/tlmanager-signer.jks` | Path to signer JKS. |
 | `tlmanager_signer_keystore_password` | `changeit` | Keystore (and key) password. |

@@ -33,6 +33,7 @@
   - Alternative flow: export TL XML → sign externally → re‑import and validate.
   - Run signing/validation test and document results.
 
+
 ## 2) Key Results
 
 - Working end‑to‑end configuration on RHEL 9 achieved.

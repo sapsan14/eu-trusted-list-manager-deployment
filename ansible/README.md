@@ -42,6 +42,7 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 1. **Package:** Put `TL-NEU-6.0.ZIP` in the repo **`packages/`** directory (or a `.war` file there).
 
 2. **Inventory:** Copy and edit:
+
    ```bash
    cp ansible/inventory.example ansible/inventory
    # Edit ansible/inventory: set your VM hostname/IP and ansible_user (no passwords needed)
@@ -50,11 +51,13 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 3. **Credentials (PoC / automatic deployment):** DB usernames and passwords are in **`ansible/group_vars/tlmanager/deployment-passwords.yml`** (e.g. user `tlmanager`, password `TrustedListManagerDatabasePassword`). Loaded automatically — no `-e` needed. To change user or password, edit that file. See **`.env.example`** in repo root for the same values in KEY=VALUE form. For production, use vault or `-e` and do not commit real secrets.
 
 4. **Run** (from `ansible/`):
+
    ```bash
    ansible-galaxy collection install -r requirements.yml
    ansible-playbook -i inventory playbooks/site.yml
    ```
    Or run phase by phase (no password args; they come from group_vars):
+
    ```bash
    ansible-playbook -i inventory playbooks/01-base.yml
    ansible-playbook -i inventory playbooks/02-runtime.yml
@@ -63,6 +66,7 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
    ansible-playbook -i inventory playbooks/05-bootstrap-user.yml
    ```
    To fix “Access denied” for user `tlmanager`: re-run so MySQL and the app get the same password from group_vars:
+
    ```bash
    ansible-playbook -i inventory playbooks/02-runtime.yml   # updates MySQL user password
    ansible-playbook -i inventory playbooks/03-tlmanager.yml # updates app and restarts Tomcat
@@ -70,10 +74,11 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 
 5. **After run:** Tomcat listens on port **8080** (HTTP). Open `http://<your-vm>:8080/` (or the context you set).  
    **CAS** is deployed by **04-cas.yml** (or `site.yml`) at `/cas-server-webapp-4.0.0/`; set `tlmanager_cas_server_url` and `tlmanager_cas_service_url` to match your access (see `docs/TL-Manager-Non-EU-Deployment.md`).  
-   **HTTPS:** CAS SSO requires HTTPS; enable HTTPS (`tomcat_https_enabled: true`) and access `https://<your-vm>:8443/`. Update CAS URLs to HTTPS and re-run `03-tlmanager.yml`.
+   **HTTPS:** CAS SSO requires HTTPS; enable HTTPS (`tomcat_https_enabled: true`) and access `<https://<your-vm>:8443/>`. Update CAS URLs to HTTPS and re-run `03-tlmanager.yml`.
 
    **Inventory snippet (add under `[tlmanager:vars]`):**
-   ```
+
+   ```ini
    # Enable HTTPS for Tomcat (needed for CAS SSO)
    tomcat_https_enabled=true
    # CAS URLs must match the certificate hostname
@@ -81,7 +86,8 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
    tlmanager_cas_service_url=https://tl-manager-lab.internal:8443/tl-manager-non-eu
    ```
    **Bootstrap user snippet:**
-   ```
+
+   ```ini
    # CAS username (ECAS_ID) and display name
    tlmanager_bootstrap_user_ecas_id=test
    tlmanager_bootstrap_user_name=Test
@@ -92,7 +98,7 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 ## Variables (main)
 
 | Variable | Role | Default | Description |
-|----------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `base_hostname` | base_server | `tl-manager-lab.internal` | Hostname to set |
 | `mysql_tlmanager_user` | mysql | `tlmanager` (in deployment-passwords.yml) | MySQL user for DB `tlmanager` |
 | `tlmanager_db_user` | tlmanager | same | JDBC username (must match MySQL user) |
@@ -113,6 +119,7 @@ For PoC, passwords live in `group_vars/tlmanager/deployment-passwords.yml` (plai
 
 - Role **tomcat** leaves the service **stopped** (so the WAR can be deployed first). Role **tlmanager** starts Tomcat at the end. If you ran only `02-runtime.yml` or Tomcat was restarted/rebooted and failed to start, the service may be down.
 - On the target VM:
+
   ```bash
   sudo systemctl status tomcat
   sudo systemctl start tomcat
