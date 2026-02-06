@@ -91,6 +91,33 @@
     group: "{{ tomcat_group | default('tomcat') }}"
     mode: "0755"
 
+- name: Ensure custom-config directories exist (tsl/logs)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0755"
+  loop:
+    - "{{ tlmanager_custom_config_dir | default('/opt/tomcat/custom-config') }}"
+    - "{{ tlmanager_tsl_folder | default('/opt/tomcat/custom-config/tsl') }}"
+    - "{{ tlmanager_logs_folder | default('/opt/tomcat/custom-config/logs') }}"
+
+- name: Stat tsl-constraint.xml in webapp
+  ansible.builtin.stat:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/tsl-constraint.xml"
+  register: _tl_constraint_src
+
+- name: Copy tsl-constraint.xml to custom-config
+  ansible.builtin.copy:
+    src: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/tsl-constraint.xml"
+    dest: "{{ tlmanager_dss_constraint_path | default('/opt/tomcat/custom-config/tsl-constraint.xml') }}"
+    remote_src: true
+    owner: "{{ tomcat_user | default('tomcat') }}"
+    group: "{{ tomcat_group | default('tomcat') }}"
+    mode: "0644"
+  when: _tl_constraint_src.stat.exists | default(false)
+
 - name: Deploy proxy.properties
   ansible.builtin.template:
     src: proxy.properties.j2
@@ -114,6 +141,40 @@
     path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
     regexp: '^jdbc\\.driverClassName='
     line: "jdbc.driverClassName=com.mysql.cj.jdbc.Driver"
+    create: true
+  notify: Restart Tomcat
+
+- name: Remove legacy Windows-style custom-config paths
+  ansible.builtin.shell: |
+    f="{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    sed -i '/^tsl\.folder[[:space:]]*=[[:space:]]*\${catalina\.base}\\\\custom-config\\\\tsl/d' "$f"
+    sed -i '/^logs\.folder[[:space:]]*=[[:space:]]*\${catalina\.base}\\\\custom-config\\\\logs/d' "$f"
+    sed -i '/^dss\.constraint[[:space:]]*=[[:space:]]*\${catalina\.base}\\\\custom-config\\\\tsl-constraint\.xml/d' "$f"
+  args:
+    executable: /bin/bash
+  notify: Restart Tomcat
+
+- name: Patch application.properties — tsl.folder (draft storage)
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^tsl\\.folder='
+    line: "tsl.folder={{ tlmanager_tsl_folder | default('/opt/tomcat/custom-config/tsl') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — logs.folder
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^logs\\.folder='
+    line: "logs.folder={{ tlmanager_logs_folder | default('/opt/tomcat/custom-config/logs') }}"
+    create: true
+  notify: Restart Tomcat
+
+- name: Patch application.properties — dss.constraint
+  ansible.builtin.lineinfile:
+    path: "{{ _tlmanager_webapp_dir }}/WEB-INF/classes/application.properties"
+    regexp: '^dss\\.constraint='
+    line: "dss.constraint={{ tlmanager_dss_constraint_path | default('/opt/tomcat/custom-config/tsl-constraint.xml') }}"
     create: true
   notify: Restart Tomcat
 
@@ -679,3 +740,33 @@
       ---
       (CAS does not fix this — the app must start first; fix the exception above.)
   when: _fail_current_run | default(false) | bool
+
+- name: Copy TL_COUNTRIES seed (ISO 3166-1 + EU) to host
+  ansible.builtin.copy:
+    src: tl_countries_iso3166.sql
+    dest: "{{ tlmanager_seed_countries_sql_path }}"
+    mode: "0644"
+  when: tlmanager_seed_countries | default(true) | bool
+
+- name: Wait for TL_COUNTRIES table to exist
+  community.mysql.mysql_query:
+    login_unix_socket: /var/lib/mysql/mysql.sock
+    query: >-
+      SELECT COUNT(*)
+      FROM information_schema.tables
+      WHERE table_schema='{{ mysql_tlmanager_database | default("tlmanager") }}'
+        AND table_name='TL_COUNTRIES';
+  register: _tl_countries_table
+  until: (_tl_countries_table.query_result[0][0]["COUNT(*)"] | int) > 0
+  retries: 12
+  delay: 5
+  changed_when: false
+  when: tlmanager_seed_countries | default(true) | bool
+
+- name: Import TL_COUNTRIES seed (ISO 3166-1 + EU)
+  community.mysql.mysql_db:
+    name: "{{ mysql_tlmanager_database | default('tlmanager') }}"
+    state: import
+    target: "{{ tlmanager_seed_countries_sql_path }}"
+    login_unix_socket: /var/lib/mysql/mysql.sock
+  when: tlmanager_seed_countries | default(true) | bool

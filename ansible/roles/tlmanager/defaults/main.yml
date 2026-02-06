@@ -26,6 +26,16 @@ tlmanager_signer_keystore_path: "/opt/tomcat/conf/tlmanager-signer.jks"
 tlmanager_signer_keystore_password: "changeit"
 tlmanager_signer_keystore_create: true   # create minimal JKS if path missing
 
+# Custom-config paths (avoid Windows-style defaults in WAR)
+tlmanager_custom_config_dir: "/opt/tomcat/custom-config"
+tlmanager_tsl_folder: "/opt/tomcat/custom-config/tsl"
+tlmanager_logs_folder: "/opt/tomcat/custom-config/logs"
+tlmanager_dss_constraint_path: "/opt/tomcat/custom-config/tsl-constraint.xml"
+
+# Seed countries (ISO 3166-1 + EU) into TL_COUNTRIES
+tlmanager_seed_countries: true
+tlmanager_seed_countries_sql_path: "/tmp/tl_countries_iso3166.sql"
+
 # Official guide: application-tlmanager-non-eu-custom.properties in Tomcat lib (CAS URLs)
 tlmanager_cas_server_url: "http://localhost:8080/cas-server-webapp-4.0.0"
 tlmanager_cas_service_url: "http://localhost:8080/tl-manager-non-eu"

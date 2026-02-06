@@ -3,7 +3,7 @@
 ## Guides and plans
 - `EU-Trusted-List-Manager-Deployment-Plan.md` — main plan, scope, checklists, status
 - `EU-Trusted-List-Manager-Deployment-Plan-RU.md` — Russian translation of the plan
-- `TL-Manager-Non-EU-Deployment.md` — what Ansible automates, keyStore gap, variables
+- `TL-Manager-Non-EU-Deployment.md` — what Ansible automates, keyStore gap, post‑deploy prerequisites, variables
 - `VM-Deployment-Guide.md` — VM install, access URLs, bootstrap user, SSH tunnel
 - `Production-Adjustments.md` — production hardening checklist
 - `DSS-and-Signing.md` — DSS relationship and signing summary

@@ -15,6 +15,10 @@
 - ✅ CAS deployed with minimal configuration for one service.
 - ✅ TL Manager UI is reachable; CAS login works.
 - ✅ Deployment documentation updated.
+- ✅ TL_COUNTRIES seeded (ISO 3166‑1 + EU); country list populated.
+- ✅ Draft storage paths fixed for Linux; custom-config directories created.
+- ✅ Create empty draft works in UI.
+- ✅ Import test TL XML works (`test/BE.xml`).
 
 ## 2) Key Results
 - Working end‑to‑end configuration on RHEL 9 achieved.
@@ -23,7 +27,7 @@
 
 ## 3) Remaining Steps (Checklist)
 ### Functional validation
-- [ ] Create/import a test Trusted List (XML).
+- [x] Create/import a test Trusted List (XML).
 - [ ] Edit and save changes via the UI.
 - [ ] Verify operator audit/logging (if available).
 - [ ] Record any limitations or errors found.

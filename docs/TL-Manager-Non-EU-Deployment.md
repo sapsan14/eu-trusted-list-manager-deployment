@@ -61,6 +61,9 @@ Variables: `cas_webapp_context` (default `cas-server-webapp-4.0.0`), optional `c
 - Resolves the WAR from `packages/` (e.g. `tl-manager-non-eu.war` or from `TL-NEU-6.0.ZIP`).
 - Deploys the exploded WAR to Tomcat `webapps/tl-manager-non-eu/`.
 - Patches the WAR's `application.properties`: JDBC driver, URL, username, password; Hibernate `hbm2ddl.auto=update`.
+- Patches **Linux custom-config paths** (`tsl.folder`, `logs.folder`, `dss.constraint`) and creates the corresponding directories so draft storage works on Linux.
+- Copies `tsl-constraint.xml` from the WAR into `/opt/tomcat/custom-config/tsl-constraint.xml` (used by DSS validation).
+- Seeds `TL_COUNTRIES` with **ISO 3166‑1 + EU** so the “Select a Country” list is populated and draft import works.
 - Deploys `proxy.properties` and patches `application.properties` with all proxy settings (enabled, host, port, user, password, exclude) so the UI starts without proxy.
 - Ensures MySQL Connector/J is present: looks for JAR in `/usr/share/java` or Tomcat lib; if missing, installs via dnf or downloads from Maven Central; copies it to `WEB-INF/lib`.
 - Sets ownership of the webapp to the `tomcat` user.
@@ -90,6 +93,90 @@ So you do **not** need to run keytool or edit properties by hand for a lab run. 
 
 ---
 
+## Post‑deploy prerequisites for Drafts (created/imported TLs)
+
+Two application behaviors must be configured explicitly on Linux after the initial deploy. This repo handles both automatically now, but they are **required** for a functioning UI.
+
+### 1) Country list (TL_COUNTRIES) must be seeded
+
+Symptoms when missing:
+- “Select a Country” is empty.
+- Importing a TL fails with: **“Scheme Territory … empty or not found in properties.”**
+
+**What this repo does:** seeds the table with **ISO 3166‑1 + EU**.
+
+### 2) Draft storage path must use Linux separators
+
+The WAR ships with Windows‑style defaults:
+```
+tsl.folder = ${catalina.base}\\custom-config\\tsl
+logs.folder = ${catalina.base}\\custom-config\\logs
+dss.constraint = ${catalina.base}\\custom-config\\tsl-constraint.xml
+```
+
+Symptoms when not fixed:
+- “Create an empty draft” or “Import from local file” fails with **Bad Request**.
+- Logs show a path like:
+  `.../custom-config\tsl/BE/...` and “No such file or directory”.
+
+**What this repo does:** sets Linux paths and creates them:
+- `/opt/tomcat/custom-config/tsl`
+- `/opt/tomcat/custom-config/logs`
+- `/opt/tomcat/custom-config/tsl-constraint.xml` (copied from the WAR)
+
+---
+
+## Functional test steps (lab / acceptance)
+
+Use these steps after initial deploy to verify that the system is operational:
+
+1) **Login**
+   - Open TL Manager and authenticate via CAS.
+
+2) **Draft creation**
+   - Go to **My Drafts**.
+   - Confirm “Select a Country” has entries.
+   - Select a country (e.g., **BE**) and click **Create an empty draft**.
+   - Verify the draft appears in the list.
+
+3) **Import a TL XML**
+   - Click **Import from a local file** and upload `test/BE.xml`.
+   - Verify a draft is created and appears in the list.
+
+4) **Open and edit**
+   - Open the draft and make a small change (e.g., a label or Scheme Operator Name).
+   - Save and confirm no errors.
+
+5) **Check logs**
+   - Confirm no errors in `catalina.out` related to draft storage or DSS validation.
+
+---
+
+## Production requirements (must do)
+
+**Keys and signing**
+- Replace the lab JKS with a **production signing key** (QSCD/HSM or approved keystore).
+- Set:
+  - `tlmanager_signer_keystore_path`
+  - `tlmanager_signer_keystore_password`
+  - `tlmanager_signer_keystore_create: false`
+
+**Storage and paths**
+- Ensure `/opt/tomcat/custom-config/` is on persistent storage.
+- Set strict file permissions for keystore and logs.
+- Back up **TSL drafts** and **logs** as part of the runbook.
+
+**Security and compliance**
+- Move passwords to **vault** (do not keep in `group_vars`).
+- Harden CAS (TLS, IdP, policies) and align certificate hostname.
+- Perform security review of **JDK 8** (EOL) and dependencies.
+
+**Operational**
+- Monitor Tomcat, MySQL, disk usage, and log rotation.
+- Define recovery steps for DB + `custom-config`.
+
+---
+
 ## Variables (defaults)
 
 | Variable | Default | Description |
@@ -98,6 +185,12 @@ So you do **not** need to run keytool or edit properties by hand for a lab run. 
 | `tlmanager_signer_keystore_path` | `/opt/tomcat/conf/tlmanager-signer.jks` | Path to signer JKS. |
 | `tlmanager_signer_keystore_password` | `changeit` | Keystore (and key) password. |
 | `tlmanager_signer_keystore_create` | `true` | Create minimal JKS if missing. |
+| `tlmanager_custom_config_dir` | `/opt/tomcat/custom-config` | Base dir for custom-config. |
+| `tlmanager_tsl_folder` | `/opt/tomcat/custom-config/tsl` | Draft storage path. |
+| `tlmanager_logs_folder` | `/opt/tomcat/custom-config/logs` | TL Manager logs path. |
+| `tlmanager_dss_constraint_path` | `/opt/tomcat/custom-config/tsl-constraint.xml` | DSS constraint file path. |
+| `tlmanager_seed_countries` | `true` | Seed `TL_COUNTRIES` with ISO 3166‑1 + EU. |
+| `tlmanager_seed_countries_sql_path` | `/tmp/tl_countries_iso3166.sql` | Seed SQL location on host. |
 | `cas_webapp_context` | `cas-server-webapp-4.0.0` | CAS context path (URL: `/cas-server-webapp-4.0.0/`). |
 | `cas_war_path` | (none) | Path to CAS WAR on controller; if unset, role uses `packages/cas-server-webapp-4.0.0.war` or extracts from `packages/TL-NEU-6.0.ZIP`. |
 | `tomcat_https_enabled` | `false` | Enable HTTPS connector and generate a JKS keystore. |

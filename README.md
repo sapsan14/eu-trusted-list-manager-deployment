@@ -12,7 +12,7 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 |------|-------------|
 | [docs/EU-Trusted-List-Manager-Deployment-Plan.md](docs/EU-Trusted-List-Manager-Deployment-Plan.md) | **Main plan:** scope, resource ordering, time estimates, risks, checklists, LLM prompts. Includes current status and English source of truth. |
 | [docs/EU-Trusted-List-Manager-Deployment-Plan-RU.md](docs/EU-Trusted-List-Manager-Deployment-Plan-RU.md) | Russian translation of the main plan (kept in sync with the English version). |
-| [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md) | What Ansible automates, keyStore gap explained, variables reference. |
+| [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md) | What Ansible automates, keyStore gap explained, post‑deploy prerequisites, variables reference. |
 | [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md) | VM install guide, access URLs, bootstrap user, SSH tunnel, common fixes. |
 | [docs/Production-Adjustments.md](docs/Production-Adjustments.md) | Production hardening checklist and required adjustments. |
 | [docs/DSS-and-Signing.md](docs/DSS-and-Signing.md) | DSS relationship and Trusted List signing summary. |
@@ -52,6 +52,7 @@ Lab deployment and evaluation of the **European Commission’s Trusted List Mana
 5. **Continue manually where needed:**
    - **Phase 3 (CAS)** — minimal Apereo CAS deployment is still manual / separate.
    - **Phase 5–7** — validation, optional signing test, documentation, and production-readiness evaluation (§11).
+6. **Post‑deploy prerequisites:** see [docs/TL-Manager-Non-EU-Deployment.md](docs/TL-Manager-Non-EU-Deployment.md) for draft storage paths and country‑seed requirements (now automated).
 6. **Operational guides:**
    - [docs/VM-Deployment-Guide.md](docs/VM-Deployment-Guide.md)
    - [docs/Production-Adjustments.md](docs/Production-Adjustments.md)

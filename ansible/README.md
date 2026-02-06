@@ -100,6 +100,10 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 | `tlmanager_db_password` | tlmanager | same file | Same value (JDBC in context.xml and application.properties) |
 | `tlmanager_war_path` | tlmanager | (auto from packages/) | Path to WAR on controller; else uses `packages/*.war` or extracts from `packages/TL-NEU-6.0.ZIP` |
 | `tlmanager_webapp_context` | tlmanager | `ROOT` | Context path: `ROOT` → `/`, or `tlmanager` → `/tlmanager` |
+| `tlmanager_seed_countries` | tlmanager | `true` | Seed `TL_COUNTRIES` with ISO 3166‑1 + EU. |
+| `tlmanager_tsl_folder` | tlmanager | `/opt/tomcat/custom-config/tsl` | Draft storage path (Linux). |
+| `tlmanager_logs_folder` | tlmanager | `/opt/tomcat/custom-config/logs` | TL Manager logs path. |
+| `tlmanager_dss_constraint_path` | tlmanager | `/opt/tomcat/custom-config/tsl-constraint.xml` | DSS constraint file path. |
 
 For PoC, passwords live in `group_vars/tlmanager/deployment-passwords.yml` (plain English). For production, use vault or `-e` and do not commit that file with real secrets.
 
@@ -140,6 +144,15 @@ For PoC, passwords live in `group_vars/tlmanager/deployment-passwords.yml` (plai
 - The **tlmanager** role can create a **minimal JKS keystore** for lab use and set `signer.keystore.path` / `signer.keystore.password` (and `keystore.path` / `keystore.password`) in `application.properties`. Run the playbook again so these are applied:
   `ansible-playbook -i inventory playbooks/03-tlmanager.yml`
 - Defaults: keystore path `/opt/tomcat/conf/tlmanager-signer.jks`, password `changeit`. Override with `tlmanager_signer_keystore_path`, `tlmanager_signer_keystore_password` in inventory or group_vars. For real signing (e.g. QSCD), replace this keystore with your production one and set the same properties.
+
+**Drafts fail to create/import ("Bad Request: Error while trying to process TL XML file")**
+
+- Ensure Linux paths are configured and directories exist:
+  - `tsl.folder=/opt/tomcat/custom-config/tsl`
+  - `logs.folder=/opt/tomcat/custom-config/logs`
+  - `dss.constraint=/opt/tomcat/custom-config/tsl-constraint.xml`
+- Ensure `TL_COUNTRIES` is seeded (ISO 3166‑1 + EU). Re-run:
+  `ansible-playbook -i inventory playbooks/03-tlmanager.yml`
 
 **HTTP 404 – Not Found on `/login`**
 

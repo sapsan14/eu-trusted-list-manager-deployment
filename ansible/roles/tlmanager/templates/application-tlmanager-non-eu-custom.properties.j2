@@ -25,6 +25,11 @@ jdbc.url=jdbc:mysql://localhost:3306/{{ mysql_tlmanager_database | default('tlma
 jdbc.username={{ tlmanager_db_user }}
 jdbc.password={{ tlmanager_db_password }}
 
+# Custom-config paths (override Windows-style defaults in WAR)
+tsl.folder={{ tlmanager_tsl_folder | default('/opt/tomcat/custom-config/tsl') }}
+logs.folder={{ tlmanager_logs_folder | default('/opt/tomcat/custom-config/logs') }}
+dss.constraint={{ tlmanager_dss_constraint_path | default('/opt/tomcat/custom-config/tsl-constraint.xml') }}
+
 # Signer keystore (required by keyStore bean — not documented in official Installation guide)
 signer.keystore.path={{ tlmanager_signer_keystore_path }}
 signer.keystore.password={{ tlmanager_signer_keystore_password }}
